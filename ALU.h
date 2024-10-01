@@ -10,5 +10,5 @@ public:
     void add();         
     void subtract();
     void shift(bool direction);    //false = left; true = right;
-
+    void logic(int logicType);     //0 = OR; 1 = AND; 2 = NOT; 3 = XOR;
 };

@@ -12,9 +12,14 @@ void ALU::add() {
 }
 
 void ALU::subtract() {
-    
+    a->setValue(x->getValue() - y->getValue());
 }
 
 void ALU::shift(bool direction) {
+    char newValue = direction ? (a->getValue() << 1) : (a->getValue() >> 1);
+    a->setValue(newValue);
+}
+
+void ALU::logic(int logicType) {
 
 }
