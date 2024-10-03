@@ -2,9 +2,9 @@
 
 class ALU {
 private:
-    Register* a;
-    Register* x;
-    Register* y;
+    Register a;
+    Register x;
+    Register y;
 public:
     ALU(Register* ina, Register* inx, Register* iny);
     void add();         

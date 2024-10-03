@@ -2,9 +2,9 @@
 #include"Register.h"
 
 ALU::ALU(Register* ina, Register* inx, Register* iny) {
-    a = ina;
-    x = inx;
-    y = iny;
+    a = *ina;
+    x = *inx;
+    y = *iny;
 }
 
 void ALU::add() {
