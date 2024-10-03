@@ -10,9 +10,10 @@ int main() {
     char bus;
     ALU alu(&a, &x, &y);
     
-
-    x.setValue('A');
-    y.setValue('B');
-    alu.add();
-    std::cout << a.getValue() << "\n";
+    a.setValue(12);
+    x.setValue(3);
+    y.setValue(12);
+    alu.logic(1);
+    int outputest = a.getValue();
+    std::cout << outputest << "\n";
 }
