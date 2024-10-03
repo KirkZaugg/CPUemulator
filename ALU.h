@@ -1,3 +1,4 @@
+#pragma once
 #include "Register.h"
 
 class ALU {
