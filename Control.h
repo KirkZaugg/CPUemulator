@@ -9,7 +9,10 @@ private:
     Register* a;
     Register* x;
     Register* y;
+    Register ctrlReg;
 
+
+    void jump();
 public:
     Control(ALU* inALU, Register* ina, Register* inx, Register* iny);
     void operate();

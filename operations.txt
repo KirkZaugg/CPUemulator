@@ -1,5 +1,4 @@
 Operations for control and stuff:
 
-ADD
+JMP    0x11
 
-SUB
