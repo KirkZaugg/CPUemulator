@@ -3,6 +3,8 @@
 #include"largeRegister.h"
 #include"ProgramCounter.h"
 #include"ALU.h"
+#include"ram.h"
+#include"Control.h"
 
 int main() {
     Register a;
@@ -10,18 +12,14 @@ int main() {
     Register y;
     char bus;
     ALU alu(&a, &x, &y);
+    RAM ram;
 
     ProgramCounter f;
+    f.setWholeValue(0);
 
+    Control control(&alu, &a, &x, &y, &ram, &f);
+
+    control.operate();
+    control.operate();
     
-    
-    f.setWholeValue(0x41ff);
-    std::cout << 0x41 << "\n";
-    int r = f.getBigValue();
-    std::cout << r << "\n";
-    std::cout << ((f.getWholeValue() & 0xff00) >> 8) << "\n";
-    std::cout << 0xff << "\n";
-    r = f.getValue();
-    std::cout << r << "\n";
-    std::cout << (f.getWholeValue() & 0xff) << "\n";
 }
