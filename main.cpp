@@ -10,14 +10,16 @@ int main() {
     Register a;
     Register x;
     Register y;
+    Register s;
+    Register f;
     char bus;
     ALU alu(&a, &x, &y);
     RAM ram;
 
-    ProgramCounter f;
-    f.setWholeValue(0);
+    ProgramCounter p;
+    p.setWholeValue(0);
 
-    Control control(&alu, &a, &x, &y, &ram, &f);
+    Control control(&alu, &a, &x, &y, &ram, &s, &f, &p);
 
     control.operate();
     control.operate();

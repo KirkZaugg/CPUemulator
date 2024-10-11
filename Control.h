@@ -12,13 +12,29 @@ private:
     Register* a;
     Register* x;
     Register* y;
+    Register* s;
+    Register* f;
     ProgramCounter* pc;
 
     RAM* ram;
 
+    enum Addmode {
+        A,
+        I,
+        ZP,
+        ZPX,
+        ZPY,
+        R,
+        AB,
+        ABX,
+        ABY,
+        IND,
+        IXIND,
+        INDIX
+    };
 
-    void jump();
+    char address(Addmode mode);
 public:
-    Control(ALU* inALU, Register* ina, Register* inx, Register* iny, RAM* inRam, ProgramCounter* inpc);
+    Control(ALU* inALU, Register* ina, Register* inx, Register* iny, RAM* inRam, Register* ins, Register* inf, ProgramCounter* inpc);
     void operate();
 };
