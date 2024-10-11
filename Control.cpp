@@ -24,6 +24,23 @@ char Control::address(Addmode mode) {
             pc->inc();
             return (ram->getValue(ram->getValue(pc->getWholeValue()) + (extra.getValue() << 8)));
             break;
+        case I:
+            pc->inc();
+            return (ram->getValue(pc->getWholeValue()));
+            break;
+        case ZP:
+            pc->inc();
+            return (ram->getValue(ram->getValue(pc->getWholeValue())));
+            break;
+        case ZPX:
+            pc->inc();
+            return (ram->getValue(ram->getValue(pc->getWholeValue()) + x->getValue()));
+            break;
+        case ZPY:
+            pc->inc();
+            return (ram->getValue(ram->getValue(pc->getWholeValue()) + y->getValue()));
+            break;
+        
     }
 
     return 0;
@@ -42,7 +59,7 @@ void Control::operate() {
         const char LDAi = 0xa9;
         const char LDAz = 0xa5;
         const char LDAzx = 0xb5;
-        const char LDAa = 0xad;
+        const char LDAab = 0xad;
         const char STP = 0x00;
 
         switch (inputreg.getValue()) {
@@ -57,18 +74,15 @@ void Control::operate() {
                 std::cout << "w\n";
                 break;
             case LDAi:
-                pc->inc();
-                a->setValue(ram->getValue(pc->getWholeValue()));
+                a->setValue(address(I));
                 break;
             case LDAz:
-                pc->inc();
-                a->setValue(ram->getValue(ram->getValue(pc->getWholeValue())));
+                a->setValue(address(ZP));
                 break;
             case LDAzx:
-                pc->inc();
-                a->setValue(ram->getValue(ram->getValue(pc->getWholeValue()) + x->getValue()));
+                a->setValue(address(ZPX));
                 break;
-            case LDAa:
+            case LDAab:
                 a->setValue(address(AB));
                 break;
             case STP:
