@@ -16,13 +16,25 @@ Control::Control(ALU* inALU, Register* ina, Register* inx, Register* iny, RAM* i
     pc = inpc;
 }
 
-char Control::address(Addmode mode) {
+char Control::address(char mode) {
     switch (mode) {
         case AB:
             pc->inc();
             extra.setValue(ram->getValue(pc->getWholeValue()));
             pc->inc();
             return (ram->getValue(ram->getValue(pc->getWholeValue()) + (extra.getValue() << 8)));
+            break;
+        case ABX:
+            pc->inc();
+            extra.setValue(ram->getValue(pc->getWholeValue()));
+            pc->inc();
+            return (ram->getValue(ram->getValue(pc->getWholeValue()) + (extra.getValue() << 8) + x->getValue()));
+            break;
+        case ABY:
+            pc->inc();
+            extra.setValue(ram->getValue(pc->getWholeValue()));
+            pc->inc();
+            return (ram->getValue(ram->getValue(pc->getWholeValue()) + (extra.getValue() << 8) + y->getValue()));
             break;
         case I:
             pc->inc();
@@ -36,11 +48,6 @@ char Control::address(Addmode mode) {
             pc->inc();
             return (ram->getValue(ram->getValue(pc->getWholeValue()) + x->getValue()));
             break;
-        case ZPY:
-            pc->inc();
-            return (ram->getValue(ram->getValue(pc->getWholeValue()) + y->getValue()));
-            break;
-        
     }
 
     return 0;
@@ -54,42 +61,14 @@ void Control::operate() {
     
         inputreg.setValue(ram->getValue(pc->getWholeValue()));
 
-        const char JMP = 0x11;
-        const char NOOP = 0x01;
-        const char LDAi = 0xa9;
-        const char LDAz = 0xa5;
-        const char LDAzx = 0xb5;
-        const char LDAab = 0xad;
-        const char STP = 0x00;
+        const char LDA = 0xa1;
 
-        switch (inputreg.getValue()) {
-            case JMP:
-                pc->inc();
-                extra.setValue(ram->getValue(pc->getWholeValue()));
-                pc->inc();
-                pc->setBigValue(ram->getValue(pc->getWholeValue()));
-                pc->setValue(extra.getValue());
+        char opcode = inputreg.getValue() & 0b11100011;
+        char aMode = (inputreg.getValue() & 0b00011100) >> 2;
+        switch(opcode) {
+            case LDA:
+                a->setValue(address(aMode));
                 break;
-            case NOOP:
-                std::cout << "w\n";
-                break;
-            case LDAi:
-                a->setValue(address(I));
-                break;
-            case LDAz:
-                a->setValue(address(ZP));
-                break;
-            case LDAzx:
-                a->setValue(address(ZPX));
-                break;
-            case LDAab:
-                a->setValue(address(AB));
-                break;
-            case STP:
-                std::cout << "Stopping operations...";
-                run = false;
-                break;
-        
         }
 
         pc->inc();

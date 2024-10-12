@@ -19,21 +19,17 @@ private:
     RAM* ram;
 
     enum Addmode {
-        A,
-        I,
-        ZP,
-        ZPX,
-        ZPY,
-        R,
-        AB,
-        ABX,
-        ABY,
-        IND,
-        IXIND,
-        INDIX
+        I = 0b010,
+        ZP = 0b001,
+        ZPX = 0b101,
+        AB = 0b011,
+        ABX = 0b111,
+        ABY = 0b110,
+        IXIND = 0b000,
+        INDIX = 0b100
     };
 
-    char address(Addmode mode);
+    char address(char mode);
 public:
     Control(ALU* inALU, Register* ina, Register* inx, Register* iny, RAM* inRam, Register* ins, Register* inf, ProgramCounter* inpc);
     void operate();
