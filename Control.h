@@ -19,12 +19,15 @@ private:
     RAM* ram;
 
     enum Addmode {
+        A = 0b1010,
         I = 0b010,
         ZP = 0b001,
         ZPX = 0b101,
+        ZPY = 0b1000,
         AB = 0b011,
         ABX = 0b111,
         ABY = 0b110,
+        IND = 0b1001,
         IXIND = 0b000,
         INDIX = 0b100
     };
