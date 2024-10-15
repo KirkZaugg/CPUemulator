@@ -13,7 +13,7 @@ private:
     Register* x;
     Register* y;
     Register* s;
-    Register* f;
+    StatusRegister* f;
     ProgramCounter* pc;
 
     RAM* ram;
@@ -33,7 +33,8 @@ private:
     };
 
     char address(char mode);
+    void address(char mode, char inValue);
 public:
-    Control(ALU* inALU, Register* ina, Register* inx, Register* iny, RAM* inRam, Register* ins, Register* inf, ProgramCounter* inpc);
+    Control(ALU* inALU, Register* ina, Register* inx, Register* iny, RAM* inRam, Register* ins, StatusRegister* inf, ProgramCounter* inpc);
     void operate();
 };

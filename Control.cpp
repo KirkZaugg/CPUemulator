@@ -4,8 +4,9 @@
 #include"ALU.h"
 #include"ram.h"
 #include"ProgramCounter.h"
+#include"StatusRegister.h"
 
-Control::Control(ALU* inALU, Register* ina, Register* inx, Register* iny, RAM* inRam, Register* ins, Register* inf, ProgramCounter* inpc) {
+Control::Control(ALU* inALU, Register* ina, Register* inx, Register* iny, RAM* inRam, Register* ins, StatusRegister* inf, ProgramCounter* inpc) {
     alu = inALU;
     a = ina;
     x = inx;
@@ -51,6 +52,41 @@ char Control::address(char mode) {
     }
 
     return 0;
+}
+
+void Control::address(char mode, char inValue) {
+    switch (mode) {
+        case AB:
+            pc->inc();
+            extra.setValue(ram->getValue(pc->getWholeValue()));
+            pc->inc();
+            ram->setValue(ram->getValue(pc->getWholeValue()) + (extra.getValue() << 8), inValue);
+            break;
+        case ABX:
+            pc->inc();
+            extra.setValue(ram->getValue(pc->getWholeValue()));
+            pc->inc();
+            ram->setValue(ram->getValue(pc->getWholeValue()) + (extra.getValue() << 8) + x->getValue(), inValue);
+            break;
+        case ABY:
+            pc->inc();
+            extra.setValue(ram->getValue(pc->getWholeValue()));
+            pc->inc();
+            ram->setValue(ram->getValue(pc->getWholeValue()) + (extra.getValue() << 8) + y->getValue(), inValue);
+            break;
+        case I:
+            pc->inc();
+            ram->setValue(pc->getWholeValue(), inValue);
+            break;
+        case ZP:
+            pc->inc();
+            ram->setValue(ram->getValue(pc->getWholeValue()), inValue);
+            break;
+        case ZPX:
+            pc->inc();
+            ram->setValue(ram->getValue(pc->getWholeValue()) + x->getValue(), inValue);
+            break;
+    }
 }
 
 void Control::operate() {
@@ -121,12 +157,28 @@ void Control::operate() {
                     case 0b01:
                         switch (aaa) {
                             case 0b000:  //ORA
+                                a->setValue(address(bbb) | a->getValue());
+                                if(a->getValue() < 0) {f->setNegative(1);}
+                                if(a->getValue() == 0) {f->setZero(1);}
                             case 0b001:  //AND
+                                a->setValue(address(bbb) & a->getValue());
+                                if(a->getValue() < 0) {f->setNegative(1);}
+                                if(a->getValue() == 0) {f->setZero(1);}
                             case 0b010:  //EOR
+                                a->setValue(address(bbb) ^ a->getValue());
+                                if(a->getValue() < 0) {f->setNegative(1);}
+                                if(a->getValue() == 0) {f->setZero(1);}
                             case 0b011:  //ADC
+                                int temp = address(bbb);
+                                if (temp + a->getValue() > 256) {f->setCarry(1);}
+                                a->setValue(temp + a->getValue());
+                                if(a->getValue() < 0) {f->setNegative(1);}
+                                if(a->getValue() == 0) {f->setZero(1);}
                             case 0b100:  //STA
                             case 0b101:  //LDA
                                 a->setValue(address(bbb));
+                                if(a->getValue() < 0) {f->setNegative(1);}
+                                if(a->getValue() == 0) {f->setZero(1);}
                                 break;
                             case 0b110:  //CMP
                             case 0b111:  //SBC
