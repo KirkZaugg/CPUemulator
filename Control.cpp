@@ -89,6 +89,14 @@ void Control::address(char mode, char inValue) {
     }
 }
 
+void Control::flags(Register* inreg) {
+    if(inreg->getValue() == 0) {
+        f->setZero(1);
+    } else if (inreg->getValue() < 0) {
+        f->setNegative(1);
+    }
+}
+
 void Control::operate() {
 
     bool run = true;
@@ -158,30 +166,44 @@ void Control::operate() {
                         switch (aaa) {
                             case 0b000:  //ORA
                                 a->setValue(address(bbb) | a->getValue());
-                                if(a->getValue() < 0) {f->setNegative(1);}
-                                if(a->getValue() == 0) {f->setZero(1);}
+                                flags(a);
+                                break;
                             case 0b001:  //AND
                                 a->setValue(address(bbb) & a->getValue());
-                                if(a->getValue() < 0) {f->setNegative(1);}
-                                if(a->getValue() == 0) {f->setZero(1);}
+                                flags(a);
+                                break;
                             case 0b010:  //EOR
                                 a->setValue(address(bbb) ^ a->getValue());
-                                if(a->getValue() < 0) {f->setNegative(1);}
-                                if(a->getValue() == 0) {f->setZero(1);}
+                                flags(a);
+                                break;
                             case 0b011:  //ADC
                                 int temp = address(bbb);
                                 if (temp + a->getValue() > 256) {f->setCarry(1);}
                                 a->setValue(temp + a->getValue());
-                                if(a->getValue() < 0) {f->setNegative(1);}
-                                if(a->getValue() == 0) {f->setZero(1);}
+                                flags(a);
+                                break;
                             case 0b100:  //STA
+                                address(bbb, a->getValue());
+                                break;
                             case 0b101:  //LDA
                                 a->setValue(address(bbb));
-                                if(a->getValue() < 0) {f->setNegative(1);}
-                                if(a->getValue() == 0) {f->setZero(1);}
+                                flags(a);
                                 break;
                             case 0b110:  //CMP
+                                char extra = a->getValue() - address(bbb);
+                                if (extra < 0) {
+                                    f->setNegative(1);
+                                } else if (extra == 0) {
+                                    f->setZero(1);
+                                } else if (extra > 0) {
+                                    f->setCarry(1);
+                                }
+                                break;
                             case 0b111:  //SBC
+                                int temp = address(bbb);
+                                a->setValue(temp + a->getValue());
+                                flags(a);
+                                break;
                         }
                         break;
                     case 0b10:
@@ -200,6 +222,7 @@ void Control::operate() {
                             case 0b011:  //ROR
                             case 0b100:  //STX
                                 if(bbb == 0b101) {bbb = ZPY;}
+                                address(bbb, x->getValue());
                                 break;
                             case 0b101:  //LDX
                                 if(bbb == 0b101) {bbb = ZPY;}
@@ -216,6 +239,8 @@ void Control::operate() {
                             case 0b010:  //JMP
                             case 0b011:  //JMP (abs)
                             case 0b100:  //STY
+                                address(bbb, y->getValue());
+                                break;
                             case 0b101:  //LDY
                             case 0b110:  //CPY
                             case 0b111:  //CPX

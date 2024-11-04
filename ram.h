@@ -2,8 +2,9 @@
 
 class RAM {
 private:
-    char info[10] = {0x11, 0x09, 0x00, 0, 0, 0, 0, 0, 0, 0x01};
+    std::string file;
 public:
-    char getValue(wchar_t location) {return info[location];}
-    void setValue(wchar_t location, char value) {info[location] = value;}
+    char getValue(wchar_t location);
+    void setValue(wchar_t location, char value);
+    RAM();
 };

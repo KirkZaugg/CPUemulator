@@ -34,6 +34,7 @@ private:
 
     char address(char mode);
     void address(char mode, char inValue);
+    void flags(Register* inreg);
 public:
     Control(ALU* inALU, Register* ina, Register* inx, Register* iny, RAM* inRam, Register* ins, StatusRegister* inf, ProgramCounter* inpc);
     void operate();
