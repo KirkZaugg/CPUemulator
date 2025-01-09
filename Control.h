@@ -32,8 +32,8 @@ private:
         INDIX = 0b100
     };
 
-    char address(char mode);
-    void address(char mode, char inValue);
+    char address(char mode, int offset);
+    void address(char mode, char inValue, int offset);
     void flags(Register* inreg);
 public:
     Control(ALU* inALU, Register* ina, Register* inx, Register* iny, RAM* inRam, Register* ins, StatusRegister* inf, ProgramCounter* inpc);

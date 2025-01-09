@@ -5,6 +5,7 @@
 #include"ram.h"
 #include"ProgramCounter.h"
 #include"StatusRegister.h"
+#include"Clock.h"
 
 Control::Control(ALU* inALU, Register* ina, Register* inx, Register* iny, RAM* inRam, Register* ins, StatusRegister* inf, ProgramCounter* inpc) {
     alu = inALU;
@@ -17,7 +18,7 @@ Control::Control(ALU* inALU, Register* ina, Register* inx, Register* iny, RAM* i
     pc = inpc;
 }
 
-char Control::address(char mode) {
+char Control::address(char mode, int offset) {
     switch (mode) {
         case AB:
             pc->inc();
@@ -54,7 +55,7 @@ char Control::address(char mode) {
     return 0;
 }
 
-void Control::address(char mode, char inValue) {
+void Control::address(char mode, char inValue, int offset) {
     switch (mode) {
         case AB:
             pc->inc();
@@ -132,6 +133,8 @@ void Control::operate() {
             case 0xBA: //TSX
             case 0xCA: //DEX
             case 0xEA: //NOP
+                Clock::cycle(2);
+                break;
             default:
                 if ((inputreg.getValue() & 0b00011111) == 0b10000) {
                     char xstuff = inputreg.getValue() >> 6;
@@ -165,32 +168,32 @@ void Control::operate() {
                     case 0b01:
                         switch (aaa) {
                             case 0b000:  //ORA
-                                a->setValue(address(bbb) | a->getValue());
+                                a->setValue(address(bbb, 0) | a->getValue());
                                 flags(a);
                                 break;
                             case 0b001:  //AND
-                                a->setValue(address(bbb) & a->getValue());
+                                a->setValue(address(bbb, 0) & a->getValue());
                                 flags(a);
                                 break;
                             case 0b010:  //EOR
-                                a->setValue(address(bbb) ^ a->getValue());
+                                a->setValue(address(bbb, 0) ^ a->getValue());
                                 flags(a);
                                 break;
                             case 0b011:  //ADC
-                                int temp = address(bbb);
+                                int temp = address(bbb, 0);
                                 if (temp + a->getValue() > 256) {f->setCarry(1);}
                                 a->setValue(temp + a->getValue());
                                 flags(a);
                                 break;
                             case 0b100:  //STA
-                                address(bbb, a->getValue());
+                                address(bbb, a->getValue(), 0);
                                 break;
                             case 0b101:  //LDA
-                                a->setValue(address(bbb));
+                                a->setValue(address(bbb, 0));
                                 flags(a);
                                 break;
                             case 0b110:  //CMP
-                                char extra = a->getValue() - address(bbb);
+                                char extra = a->getValue() - address(bbb, 0);
                                 if (extra < 0) {
                                     f->setNegative(1);
                                 } else if (extra == 0) {
@@ -200,7 +203,7 @@ void Control::operate() {
                                 }
                                 break;
                             case 0b111:  //SBC
-                                int temp = address(bbb);
+                                int temp = address(bbb, 0);
                                 a->setValue(temp + a->getValue());
                                 flags(a);
                                 break;
@@ -218,15 +221,41 @@ void Control::operate() {
                         switch (aaa) {
                             case 0b000:  //ASL
                             case 0b001:  //ROL
+                                bool car = f->getCarry();
+                                if(bbb == A) {
+                                    f->setCarry(a->getValue() & 0x80);
+                                    a->setValue((a->getValue() << 1) + car);
+                                    Clock::cycle(2);
+                                } else {
+                                    extra.setValue(address(bbb, -1));
+                                    f->setCarry(extra.getValue() & 0x80);
+                                    extra.setValue((extra.getValue() << 1) + car);
+                                    address(bbb, extra.getValue(), 0);
+                                }
+                                break;
                             case 0b010:  //LSR
                             case 0b011:  //ROR
+                                bool car = f->getCarry();
+                                if(bbb == A) {
+                                    f->setCarry(a->getValue() & 1);
+                                    a->setValue((a->getValue() >> 1) + (0x80 * car));
+                                    Clock::cycle(2);
+                                } else {
+                                    extra.setValue(address(bbb, -1));
+                                    f->setCarry(extra.getValue() & 1);
+                                    extra.setValue((extra.getValue() >> 1) + (0x80 * car));
+                                    address(bbb, extra.getValue(), 0);
+                                }
+                                break;
                             case 0b100:  //STX
                                 if(bbb == 0b101) {bbb = ZPY;}
-                                address(bbb, x->getValue());
+                                address(bbb, x->getValue(), 0);
                                 break;
                             case 0b101:  //LDX
                                 if(bbb == 0b101) {bbb = ZPY;}
                                 if(bbb == 0b111) {bbb = ABY;}
+                                x->setValue(address(bbb, 0));
+                                flags(x);
                                 break;
                             case 0b110:  //DEC
                             case 0b111:  //INC
@@ -239,7 +268,7 @@ void Control::operate() {
                             case 0b010:  //JMP
                             case 0b011:  //JMP (abs)
                             case 0b100:  //STY
-                                address(bbb, y->getValue());
+                                address(bbb, y->getValue(), 0);
                                 break;
                             case 0b101:  //LDY
                             case 0b110:  //CPY
