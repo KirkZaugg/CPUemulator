@@ -34,6 +34,7 @@ private:
 
     char address(char mode, int offset);
     void address(char mode, char inValue, int offset);
+    char addressManipFetch(char mode);
     void flags(Register* inreg);
 public:
     Control(ALU* inALU, Register* ina, Register* inx, Register* iny, RAM* inRam, Register* ins, StatusRegister* inf, ProgramCounter* inpc);

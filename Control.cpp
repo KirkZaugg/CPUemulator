@@ -90,6 +90,31 @@ void Control::address(char mode, char inValue, int offset) {
     }
 }
 
+char Control::addressManipFetch(char mode) {
+    switch (mode) {
+        case AB:
+            return (ram->getValue(ram->getValue(pc->getWholeValue() + 2) + (ram->getValue(pc->getWholeValue() + 1) << 8)));
+            break;
+        case ABX:
+            return (ram->getValue(ram->getValue(pc->getWholeValue() + 2) + (ram->getValue(pc->getWholeValue() + 1) << 8) + x->getValue()));
+            break;
+        case ABY:
+            return (ram->getValue(ram->getValue(pc->getWholeValue() + 2) + (ram->getValue(pc->getWholeValue() + 1) << 8) + y->getValue()));
+            break;
+        case I:
+            return (ram->getValue(pc->getWholeValue() + 1));
+            break;
+        case ZP:
+            return (ram->getValue(ram->getValue(pc->getWholeValue() + 1)));
+            break;
+        case ZPX:
+            return (ram->getValue(ram->getValue(pc->getWholeValue() + 1) + x->getValue()));
+            break;
+    }
+
+    return 0;
+}
+
 void Control::flags(Register* inreg) {
     if(inreg->getValue() == 0) {
         f->setZero(1);
@@ -220,6 +245,17 @@ void Control::operate() {
                         }
                         switch (aaa) {
                             case 0b000:  //ASL
+                                if (bbb == A) {
+                                    f->setCarry(a->getValue() >> 7);
+                                    a->setValue(a->getValue() << 1);
+                                    Clock::cycle(2);
+                                } else {
+                                    extra.setValue(addressManipFetch(bbb));
+                                    f->setCarry(extra.getValue() >> 7);
+                                    extra.setValue(extra.getValue() << 1);
+                                    address(bbb, extra.getValue(), 2);
+                                }
+                                break;
                             case 0b001:  //ROL
                                 bool car = f->getCarry();
                                 if(bbb == A) {
@@ -227,13 +263,24 @@ void Control::operate() {
                                     a->setValue((a->getValue() << 1) + car);
                                     Clock::cycle(2);
                                 } else {
-                                    extra.setValue(address(bbb, -1));
+                                    extra.setValue(addressManipFetch(bbb));
                                     f->setCarry(extra.getValue() & 0x80);
                                     extra.setValue((extra.getValue() << 1) + car);
-                                    address(bbb, extra.getValue(), 0);
+                                    address(bbb, extra.getValue(), 2);
                                 }
                                 break;
                             case 0b010:  //LSR
+                                if (bbb == A) {
+                                    f->setCarry(a->getValue() & 1);
+                                    a->setValue(a->getValue() >> 1);
+                                    Clock::cycle(2);
+                                } else {
+                                    extra.setValue(addressManipFetch(bbb));
+                                    f->setCarry(extra.getValue() & 1);
+                                    extra.setValue(extra.getValue() >> 1);
+                                    address(bbb, extra.getValue(), 2);
+                                }
+                                break;
                             case 0b011:  //ROR
                                 bool car = f->getCarry();
                                 if(bbb == A) {
@@ -241,10 +288,10 @@ void Control::operate() {
                                     a->setValue((a->getValue() >> 1) + (0x80 * car));
                                     Clock::cycle(2);
                                 } else {
-                                    extra.setValue(address(bbb, -1));
+                                    extra.setValue(addressManipFetch(bbb));
                                     f->setCarry(extra.getValue() & 1);
                                     extra.setValue((extra.getValue() >> 1) + (0x80 * car));
-                                    address(bbb, extra.getValue(), 0);
+                                    address(bbb, extra.getValue(), 2);
                                 }
                                 break;
                             case 0b100:  //STX
@@ -258,20 +305,34 @@ void Control::operate() {
                                 flags(x);
                                 break;
                             case 0b110:  //DEC
+                                address(bbb, (addressManipFetch(bbb) + 1), 2);
+                                break;
                             case 0b111:  //INC
+                                address(bbb, (addressManipFetch(bbb) + 1), 2);
+                                break;
                         }
                         break;
                     case 0b00:
                         if (bbb == 000) {bbb = I;}
                         switch (aaa) {
                             case 0b001:  //BIT
+                                char mvalue = address(bbb, 0);
+                                f->setOverflow((mvalue >> 6) & 1);
+                                f->setNegative((mvalue >> 7) & 1);
+                                f->setZero((mvalue & a->getValue()) == 0);
+                                break;
                             case 0b010:  //JMP
                             case 0b011:  //JMP (abs)
                             case 0b100:  //STY
                                 address(bbb, y->getValue(), 0);
                                 break;
                             case 0b101:  //LDY
+                                y->setValue(address(bbb, 0));
+                                flags(x);
+                                break;
                             case 0b110:  //CPY
+                                char mvalue = address(bbb, 0);
+                                f->setC
                             case 0b111:  //CPX
                         }
                         break;
