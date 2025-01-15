@@ -12,6 +12,8 @@ int main() {
     Register x;
     Register y;
     Register s;
+    Register sp;
+    sp.setValue(0xff);
     StatusRegister f;
     f.setValue(0b00110000); //set inoperable bits
 
@@ -22,7 +24,7 @@ int main() {
     ProgramCounter p;
     p.setWholeValue(0);
 
-    Control control(&alu, &a, &x, &y, &ram, &s, &f, &p);
+    Control control(&alu, &a, &x, &y, &ram, &s, &f, &p, &sp);
 
     control.operate();
     control.operate();

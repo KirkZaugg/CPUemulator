@@ -7,7 +7,7 @@
 #include"StatusRegister.h"
 #include"Clock.h"
 
-Control::Control(ALU* inALU, Register* ina, Register* inx, Register* iny, RAM* inRam, Register* ins, StatusRegister* inf, ProgramCounter* inpc) {
+Control::Control(ALU* inALU, Register* ina, Register* inx, Register* iny, RAM* inRam, Register* ins, StatusRegister* inf, ProgramCounter* inpc, Register* insp) {
     alu = inALU;
     a = ina;
     x = inx;
@@ -16,6 +16,7 @@ Control::Control(ALU* inALU, Register* ina, Register* inx, Register* iny, RAM* i
     f = inf;
     ram = inRam;
     pc = inpc;
+    sp = insp;
 }
 
 char Control::address(char mode, int offset) {
@@ -133,7 +134,8 @@ void Control::operate() {
 
         switch (inputreg.getValue()) {
             case 0x00: //BRK
-            case 0x20: //JSR abs
+            case 0x20: //JSR (abs)
+
             case 0x40: //RTI
             case 0x60: //RTS
             case 0x08: //PHP
@@ -165,21 +167,38 @@ void Control::operate() {
                     char xstuff = inputreg.getValue() >> 6;
                     bool ystuff = (inputreg.getValue() & 0b00100000) >> 5;
 
-                    bool status;
+                    bool branch;
 
                     switch (xstuff) {
                         case 0b00: //negative
-                            status = inputreg.getValue() >> 7;
+                            branch = !(f->getNegative() ^ ystuff);
+                            break;
                         case 0b01: //overflow
-                            status = (inputreg.getValue() >> 6) & 1;
+                            branch = !(f->getOverflow() ^ ystuff);
+                            break;
                         case 0b10: //carry
-                            status = inputreg.getValue() & 1;
+                            branch = !(f->getCarry() ^ ystuff);
+                            break;
                         case 0b11: //zero
-                            status = (inputreg.getValue() >> 1) & 1;
+                            branch = !(f->getZero() ^ ystuff);
+                            break;
                     }
 
-                    if (status == ystuff) {
+                    if (branch) {
                         //BRANCH
+                        pc->inc();
+                        extra.setValue(ram->getValue(pc->getWholeValue()));
+                        for (int i = 0; i < extra.getValue(); i++) {
+                            pc->inc();
+                            if (0) { //Page cross REMEMBER TO IMPLEMENT PAGE CROSSING PLEASE
+                                Clock::cycle(2);
+                            }
+                        }
+                        Clock::cycle(3);
+                        break;
+                    } else {
+                        Clock::cycle(2);
+                        break;
                     }
                 }
 
@@ -321,8 +340,27 @@ void Control::operate() {
                                 f->setNegative((mvalue >> 7) & 1);
                                 f->setZero((mvalue & a->getValue()) == 0);
                                 break;
-                            case 0b010:  //JMP
+                            case 0b010:  //JMP (ind)
+                                pc->inc();
+                                extra.setValue(ram->getValue(pc->getWholeValue()));
+                                pc->inc();
+                                wchar_t target = ((ram->getValue(pc->getWholeValue()) << 8) + (extra.getValue()));
+                                pc->setWholeValue(target);   //first jump
+
+                                extra.setValue(ram->getValue(pc->getWholeValue()));
+                                pc->inc();
+                                wchar_t target = ((ram->getValue(pc->getWholeValue()) << 8) + (extra.getValue()));
+                                pc->setWholeValue(target);   //second jump
+                                Clock::cycle(5);
+                                break;
                             case 0b011:  //JMP (abs)
+                                pc->inc();
+                                extra.setValue(ram->getValue(pc->getWholeValue()));
+                                pc->inc();
+                                wchar_t target = ((ram->getValue(pc->getWholeValue()) << 8) + (extra.getValue()));
+                                pc->setWholeValue(target);
+                                Clock::cycle(3);
+                                break;
                             case 0b100:  //STY
                                 address(bbb, y->getValue(), 0);
                                 break;
@@ -332,8 +370,18 @@ void Control::operate() {
                                 break;
                             case 0b110:  //CPY
                                 char mvalue = address(bbb, 0);
-                                f->setC
+                                char yvalue = y->getValue();
+                                f->setCarry(yvalue >= mvalue);
+                                f->setZero(yvalue == mvalue);
+                                f->setNegative(yvalue < mvalue);
+                                break;
                             case 0b111:  //CPX
+                                char mvalue = address(bbb, 0);
+                                char xvalue = x->getValue();
+                                f->setCarry(xvalue >= mvalue);
+                                f->setZero(xvalue == mvalue);
+                                f->setNegative(xvalue < mvalue);
+                                break;
                         }
                         break;
                 }
