@@ -1,6 +1,7 @@
 #include "Register.h"
 #include "ALU.h"
 #include"ProgramCounter.h"
+#include"StatusRegister.h"
 #include"ram.h"
 
 class Control {

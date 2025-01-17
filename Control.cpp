@@ -136,348 +136,347 @@ char Control::pullStack() {
 void Control::operate() {
 
     
-        inputreg.setValue(ram->getValue(pc->getWholeValue()));
+    inputreg.setValue(ram->getValue(pc->getWholeValue()));
 
-        switch (inputreg.getValue()) {
-            case 0x00: //BRK
-            case 0x20: //JSR (abs)
-                pc->inc();
-                extra.setValue(ram->getValue(pc->getWholeValue()));
-                pc->inc();
-                wchar_t target = ((ram->getValue(pc->getWholeValue()) << 8) + (extra.getValue()));
-                pushStack(ram->getValue(pc->getWholeValue()) << 8);
-                pushStack(extra.getValue());
-                pc->setWholeValue(target);
-                Clock::cycle(6);
-                break;
-            case 0x40: //RTI
-            case 0x60: //RTS
-                char small = pullStack();
-                char big = pullStack();
-                wchar_t target = (big << 8) + small;
-                pc->setWholeValue(target);
-                Clock::cycle(6);
-                break;
-            case 0x08: //PHP
-                pushStack(f->getValue());
-                Clock::cycle(3);
-                break;
-            case 0x28: //PLP
-                f->setValue(pullStack());
-                Clock::cycle(4);
-                break;
-            case 0x48: //PHA
-                pushStack(a->getValue());
-                Clock::cycle(3);
-                break;
-            case 0x68: //PLA
-                a->setValue(pullStack());
-                Clock::cycle(4);
-                break;
-            case 0x88: //DEY
-                y->setValue(y->getValue() - 1);
-                flags(y);
-                Clock::cycle(2);
-                break;
-            case 0xA8: //TAY
-                y->setValue(a->getValue());
-                flags(y);
-                Clock::cycle(2);
-                break;
-            case 0xC8: //INY
-                y->setValue(y->getValue() + 1);
-                flags(y);
-                Clock::cycle(2);
-                break;
-            case 0xE8: //INX
-                x->setValue(x->getValue() + 1);
-                flags(x);
-                Clock::cycle(2);
-                break;
-            case 0x18: //CLC
-                f->setCarry(0);
-                Clock::cycle(2);
-                break;
-            case 0x38: //SEC
-                f->setCarry(1);
-                Clock::cycle(2);
-                break;
-            case 0x58: //CLI
-                f->setID(0);
-                Clock::cycle(2);
-                break;
-            case 0x78: //SEI
-                f->setID(1);
-                Clock::cycle(2);
-                break;
-            case 0x98: //TYA
-                a->setValue(y->getValue());
-                flags(a);
-                Clock::cycle(2);
-                break;
-            case 0xB8: //CLV
-                f->setOverflow(0);
-                Clock::cycle(2);
-                break;
-            case 0xD8: //CLD
-                f->setDecimal(0);
-                Clock::cycle(2);
-                break;
-            case 0xF8: //SED
-                f->setDecimal(1);
-                Clock::cycle(2);
-                break;
-            case 0x8A: //TXA
-                a->setValue(x->getValue());
-                flags(a);
-                Clock::cycle(2);
-                break;
-            case 0x9A: //TXS
-                pushStack(x->getValue());
-                Clock::cycle(2);
-                break;
-            case 0xAA: //TAX
-                x->setValue(a->getValue());
-                flags(x);
-                Clock::cycle(2);
-                break;
-            case 0xBA: //TSX
-                x->setValue(pullStack());
-                flags(x);
-                Clock::cycle(2);
-                break;
-            case 0xCA: //DEX
-                x->setValue(x->getValue() - 1);
-                flags(x);
-                Clock::cycle(2);
-                break;
-            case 0xEA: //NOP
-                Clock::cycle(2);
-                break;
-            default:
-                if ((inputreg.getValue() & 0b00011111) == 0b10000) {
-                    char xstuff = inputreg.getValue() >> 6;
-                    bool ystuff = (inputreg.getValue() & 0b00100000) >> 5;
+    switch (inputreg.getValue()) {
+        case 0x00: //BRK
+        case 0x20: {//JSR (abs) 
+            pc->inc();
+            extra.setValue(ram->getValue(pc->getWholeValue()));
+            pc->inc();
+            wchar_t target = ((ram->getValue(pc->getWholeValue()) << 8) + (extra.getValue()));
+            pushStack(ram->getValue(pc->getWholeValue()) << 8);
+            pushStack(extra.getValue());
+            pc->setWholeValue(target);
+            Clock::cycle(6);
+        }break;
+        case 0x40: //RTI
+        case 0x60: {//RTS
+            char small = pullStack();
+            char big = pullStack();
+            wchar_t target = (big << 8) + small;
+            pc->setWholeValue(target);
+            Clock::cycle(6);
+        }break;
+        case 0x08: //PHP
+            pushStack(f->getValue());
+            Clock::cycle(3);
+            break;
+        case 0x28: //PLP
+            f->setValue(pullStack());
+            Clock::cycle(4);
+            break;
+        case 0x48: //PHA
+            pushStack(a->getValue());
+            Clock::cycle(3);
+            break;
+        case 0x68: //PLA
+            a->setValue(pullStack());
+            Clock::cycle(4);
+            break;
+        case 0x88: //DEY
+            y->setValue(y->getValue() - 1);
+            flags(y);
+            Clock::cycle(2);
+            break;
+        case 0xA8: //TAY
+            y->setValue(a->getValue());
+            flags(y);
+            Clock::cycle(2);
+            break;
+        case 0xC8: //INY
+            y->setValue(y->getValue() + 1);
+            flags(y);
+            Clock::cycle(2);
+            break;
+        case 0xE8: //INX
+            x->setValue(x->getValue() + 1);
+            flags(x);
+            Clock::cycle(2);
+            break;
+        case 0x18: //CLC
+            f->setCarry(0);
+            Clock::cycle(2);
+            break;
+        case 0x38: //SEC
+            f->setCarry(1);
+            Clock::cycle(2);
+            break;
+        case 0x58: //CLI
+            f->setID(0);
+            Clock::cycle(2);
+            break;
+        case 0x78: //SEI
+            f->setID(1);
+            Clock::cycle(2);
+            break;
+        case 0x98: //TYA
+            a->setValue(y->getValue());
+            flags(a);
+            Clock::cycle(2);
+            break;
+        case 0xB8: //CLV
+            f->setOverflow(0);
+            Clock::cycle(2);
+            break;
+        case 0xD8: //CLD
+            f->setDecimal(0);
+            Clock::cycle(2);
+            break;
+        case 0xF8: //SED
+            f->setDecimal(1);
+            Clock::cycle(2);
+            break;
+        case 0x8A: //TXA
+            a->setValue(x->getValue());
+            flags(a);
+            Clock::cycle(2);
+            break;
+        case 0x9A: //TXS
+            pushStack(x->getValue());
+            Clock::cycle(2);
+            break;
+        case 0xAA: //TAX
+            x->setValue(a->getValue());
+            flags(x);
+            Clock::cycle(2);
+            break;
+        case 0xBA: //TSX
+            x->setValue(pullStack());
+            flags(x);
+            Clock::cycle(2);
+            break;
+        case 0xCA: //DEX
+            x->setValue(x->getValue() - 1);
+            flags(x);
+            Clock::cycle(2);
+            break;
+        case 0xEA: //NOP
+            Clock::cycle(2);
+            break;
+        default: {
+            if ((inputreg.getValue() & 0b00011111) == 0b10000) {
+                char xstuff = inputreg.getValue() >> 6;
+                bool ystuff = (inputreg.getValue() & 0b00100000) >> 5;
 
-                    bool branch;
+                bool branch;
 
-                    switch (xstuff) {
-                        case 0b00: //negative
-                            branch = !(f->getNegative() ^ ystuff);
-                            break;
-                        case 0b01: //overflow
-                            branch = !(f->getOverflow() ^ ystuff);
-                            break;
-                        case 0b10: //carry
-                            branch = !(f->getCarry() ^ ystuff);
-                            break;
-                        case 0b11: //zero
-                            branch = !(f->getZero() ^ ystuff);
-                            break;
-                    }
+                switch (xstuff) {
+                    case 0b00: //negative
+                        branch = !(f->getNegative() ^ ystuff);
+                        break;
+                    case 0b01: //overflow
+                        branch = !(f->getOverflow() ^ ystuff);
+                        break;
+                    case 0b10: //carry
+                        branch = !(f->getCarry() ^ ystuff);
+                        break;
+                    case 0b11: //zero
+                        branch = !(f->getZero() ^ ystuff);
+                        break;
+                }
 
-                    if (branch) {
-                        //BRANCH
+                if (branch) {
+                    //BRANCH
+                    pc->inc();
+                    extra.setValue(ram->getValue(pc->getWholeValue()));
+                    for (int i = 0; i < extra.getValue(); i++) {
                         pc->inc();
-                        extra.setValue(ram->getValue(pc->getWholeValue()));
-                        for (int i = 0; i < extra.getValue(); i++) {
-                            pc->inc();
-                            if (0) { //Page cross REMEMBER TO IMPLEMENT PAGE CROSSING PLEASE
-                                Clock::cycle(2);
-                            }
+                        if (0) { //Page cross REMEMBER TO IMPLEMENT PAGE CROSSING PLEASE
+                            Clock::cycle(2);
                         }
-                        Clock::cycle(3);
-                        break;
-                    } else {
-                        Clock::cycle(2);
-                        break;
                     }
-                }
-
-                
-
-                char aaa = (inputreg.getValue() & 0b11100000) >> 5;
-                char bbb = (inputreg.getValue() & 0b00011100) >> 2; //addressing mode
-                char cc = inputreg.getValue() & 0b00000011;
-
-                switch (cc) {
-                    case 0b01:
-                        switch (aaa) {
-                            case 0b000:  //ORA
-                                a->setValue(address(bbb, 0) | a->getValue());
-                                flags(a);
-                                break;
-                            case 0b001:  //AND
-                                a->setValue(address(bbb, 0) & a->getValue());
-                                flags(a);
-                                break;
-                            case 0b010:  //EOR
-                                a->setValue(address(bbb, 0) ^ a->getValue());
-                                flags(a);
-                                break;
-                            case 0b011:  //ADC
-                                int temp = address(bbb, 0);
-                                if (temp + a->getValue() > 256) {f->setCarry(1);}
-                                a->setValue(temp + a->getValue());
-                                flags(a);
-                                break;
-                            case 0b100:  //STA
-                                address(bbb, a->getValue(), 0);
-                                break;
-                            case 0b101:  //LDA
-                                a->setValue(address(bbb, 0));
-                                flags(a);
-                                break;
-                            case 0b110:  //CMP
-                                char extra = a->getValue() - address(bbb, 0);
-                                if (extra < 0) {
-                                    f->setNegative(1);
-                                } else if (extra == 0) {
-                                    f->setZero(1);
-                                } else if (extra > 0) {
-                                    f->setCarry(1);
-                                }
-                                break;
-                            case 0b111:  //SBC
-                                int temp = address(bbb, 0);
-                                a->setValue(temp + a->getValue());
-                                flags(a);
-                                break;
-                        }
-                        break;
-                    case 0b10:
-                        switch (bbb) {
-                            case 0b000:
-                                bbb = I;
-                                break;
-                            case 0b010:
-                                bbb = A;
-                                break;
-                        }
-                        switch (aaa) {
-                            case 0b000:  //ASL
-                                if (bbb == A) {
-                                    f->setCarry(a->getValue() >> 7);
-                                    a->setValue(a->getValue() << 1);
-                                    Clock::cycle(2);
-                                } else {
-                                    extra.setValue(addressManipFetch(bbb));
-                                    f->setCarry(extra.getValue() >> 7);
-                                    extra.setValue(extra.getValue() << 1);
-                                    address(bbb, extra.getValue(), 2);
-                                }
-                                break;
-                            case 0b001:  //ROL
-                                bool car = f->getCarry();
-                                if(bbb == A) {
-                                    f->setCarry(a->getValue() & 0x80);
-                                    a->setValue((a->getValue() << 1) + car);
-                                    Clock::cycle(2);
-                                } else {
-                                    extra.setValue(addressManipFetch(bbb));
-                                    f->setCarry(extra.getValue() & 0x80);
-                                    extra.setValue((extra.getValue() << 1) + car);
-                                    address(bbb, extra.getValue(), 2);
-                                }
-                                break;
-                            case 0b010:  //LSR
-                                if (bbb == A) {
-                                    f->setCarry(a->getValue() & 1);
-                                    a->setValue(a->getValue() >> 1);
-                                    Clock::cycle(2);
-                                } else {
-                                    extra.setValue(addressManipFetch(bbb));
-                                    f->setCarry(extra.getValue() & 1);
-                                    extra.setValue(extra.getValue() >> 1);
-                                    address(bbb, extra.getValue(), 2);
-                                }
-                                break;
-                            case 0b011:  //ROR
-                                bool car = f->getCarry();
-                                if(bbb == A) {
-                                    f->setCarry(a->getValue() & 1);
-                                    a->setValue((a->getValue() >> 1) + (0x80 * car));
-                                    Clock::cycle(2);
-                                } else {
-                                    extra.setValue(addressManipFetch(bbb));
-                                    f->setCarry(extra.getValue() & 1);
-                                    extra.setValue((extra.getValue() >> 1) + (0x80 * car));
-                                    address(bbb, extra.getValue(), 2);
-                                }
-                                break;
-                            case 0b100:  //STX
-                                if(bbb == 0b101) {bbb = ZPY;}
-                                address(bbb, x->getValue(), 0);
-                                break;
-                            case 0b101:  //LDX
-                                if(bbb == 0b101) {bbb = ZPY;}
-                                if(bbb == 0b111) {bbb = ABY;}
-                                x->setValue(address(bbb, 0));
-                                flags(x);
-                                break;
-                            case 0b110:  //DEC
-                                address(bbb, (addressManipFetch(bbb) + 1), 2);
-                                break;
-                            case 0b111:  //INC
-                                address(bbb, (addressManipFetch(bbb) + 1), 2);
-                                break;
-                        }
-                        break;
-                    case 0b00:
-                        if (bbb == 000) {bbb = I;}
-                        switch (aaa) {
-                            case 0b001:  //BIT
-                                char mvalue = address(bbb, 0);
-                                f->setOverflow((mvalue >> 6) & 1);
-                                f->setNegative((mvalue >> 7) & 1);
-                                f->setZero((mvalue & a->getValue()) == 0);
-                                break;
-                            case 0b010:  //JMP (ind)
-                                pc->inc();
-                                extra.setValue(ram->getValue(pc->getWholeValue()));
-                                pc->inc();
-                                wchar_t target = ((ram->getValue(pc->getWholeValue()) << 8) + (extra.getValue()));
-                                pc->setWholeValue(target);   //first jump
-
-                                extra.setValue(ram->getValue(pc->getWholeValue()));
-                                pc->inc();
-                                wchar_t target = ((ram->getValue(pc->getWholeValue()) << 8) + (extra.getValue()));
-                                pc->setWholeValue(target);   //second jump
-                                Clock::cycle(5);
-                                break;
-                            case 0b011:  //JMP (abs)
-                                pc->inc();
-                                extra.setValue(ram->getValue(pc->getWholeValue()));
-                                pc->inc();
-                                wchar_t target = ((ram->getValue(pc->getWholeValue()) << 8) + (extra.getValue()));
-                                pc->setWholeValue(target);
-                                Clock::cycle(3);
-                                break;
-                            case 0b100:  //STY
-                                address(bbb, y->getValue(), 0);
-                                break;
-                            case 0b101:  //LDY
-                                y->setValue(address(bbb, 0));
-                                flags(x);
-                                break;
-                            case 0b110:  //CPY
-                                char mvalue = address(bbb, 0);
-                                char yvalue = y->getValue();
-                                f->setCarry(yvalue >= mvalue);
-                                f->setZero(yvalue == mvalue);
-                                f->setNegative(yvalue < mvalue);
-                                break;
-                            case 0b111:  //CPX
-                                char mvalue = address(bbb, 0);
-                                char xvalue = x->getValue();
-                                f->setCarry(xvalue >= mvalue);
-                                f->setZero(xvalue == mvalue);
-                                f->setNegative(xvalue < mvalue);
-                                break;
-                        }
-                        break;
+                    Clock::cycle(3);
+                } else {
+                    Clock::cycle(2);
                 }
                 break;
-        }
-        pc->inc();
+            }
+
+            
+
+            char aaa = (inputreg.getValue() & 0b11100000) >> 5;
+            char bbb = (inputreg.getValue() & 0b00011100) >> 2; //addressing mode
+            char cc = inputreg.getValue() & 0b00000011;
+
+            switch (cc) {
+                case 0b01:
+                    switch (aaa) {
+                        case 0b000:  //ORA
+                            a->setValue(address(bbb, 0) | a->getValue());
+                            flags(a);
+                            break;
+                        case 0b001:  //AND
+                            a->setValue(address(bbb, 0) & a->getValue());
+                            flags(a);
+                            break;
+                        case 0b010:  //EOR
+                            a->setValue(address(bbb, 0) ^ a->getValue());
+                            flags(a);
+                            break;
+                        case 0b011: {//ADC
+                            int temp = address(bbb, 0);
+                            if (temp + a->getValue() > 256) {f->setCarry(1);}
+                            a->setValue(temp + a->getValue());
+                            flags(a);
+                        }break;
+                        case 0b100:  //STA
+                            address(bbb, a->getValue(), 0);
+                            break;
+                        case 0b101:  //LDA
+                            a->setValue(address(bbb, 0));
+                            flags(a);
+                            break;
+                        case 0b110: { //CMP
+                            char extra = a->getValue() - address(bbb, 0);
+                            if (extra < 0) {
+                                f->setNegative(1);
+                            } else if (extra == 0) {
+                                f->setZero(1);
+                            } else if (extra > 0) {
+                                f->setCarry(1);
+                            }
+                        }break;
+                        case 0b111:  {//SBC
+                            int temp = address(bbb, 0);
+                            a->setValue(temp + a->getValue());
+                            flags(a);
+                        }break;
+                    }
+                    break;
+                case 0b10:
+                    switch (bbb) {
+                        case 0b000:
+                            bbb = I;
+                            break;
+                        case 0b010:
+                            bbb = A;
+                            break;
+                    }
+                    switch (aaa) {
+                        case 0b000:  //ASL
+                            if (bbb == A) {
+                                f->setCarry(a->getValue() >> 7);
+                                a->setValue(a->getValue() << 1);
+                                Clock::cycle(2);
+                            } else {
+                                extra.setValue(addressManipFetch(bbb));
+                                f->setCarry(extra.getValue() >> 7);
+                                extra.setValue(extra.getValue() << 1);
+                                address(bbb, extra.getValue(), 2);
+                            }
+                            break;
+                        case 0b001:  {//ROL
+                            bool car = f->getCarry();
+                            if(bbb == A) {
+                                f->setCarry(a->getValue() & 0x80);
+                                a->setValue((a->getValue() << 1) + car);
+                                Clock::cycle(2);
+                            } else {
+                                extra.setValue(addressManipFetch(bbb));
+                                f->setCarry(extra.getValue() & 0x80);
+                                extra.setValue((extra.getValue() << 1) + car);
+                                address(bbb, extra.getValue(), 2);
+                            }
+                        }break;
+                        case 0b010:  //LSR
+                            if (bbb == A) {
+                                f->setCarry(a->getValue() & 1);
+                                a->setValue(a->getValue() >> 1);
+                                Clock::cycle(2);
+                            } else {
+                                extra.setValue(addressManipFetch(bbb));
+                                f->setCarry(extra.getValue() & 1);
+                                extra.setValue(extra.getValue() >> 1);
+                                address(bbb, extra.getValue(), 2);
+                            }
+                            break;
+                        case 0b011:  {//ROR
+                            bool car = f->getCarry();
+                            if(bbb == A) {
+                                f->setCarry(a->getValue() & 1);
+                                a->setValue((a->getValue() >> 1) + (0x80 * car));
+                                Clock::cycle(2);
+                            } else {
+                                extra.setValue(addressManipFetch(bbb));
+                                f->setCarry(extra.getValue() & 1);
+                                extra.setValue((extra.getValue() >> 1) + (0x80 * car));
+                                address(bbb, extra.getValue(), 2);
+                            }
+                        }break;
+                        case 0b100:  //STX
+                            if(bbb == 0b101) {bbb = ZPY;}
+                            address(bbb, x->getValue(), 0);
+                            break;
+                        case 0b101:  //LDX
+                            if(bbb == 0b101) {bbb = ZPY;}
+                            if(bbb == 0b111) {bbb = ABY;}
+                            x->setValue(address(bbb, 0));
+                            flags(x);
+                            break;
+                        case 0b110:  //DEC
+                            address(bbb, (addressManipFetch(bbb) + 1), 2);
+                            break;
+                        case 0b111:  //INC
+                            address(bbb, (addressManipFetch(bbb) + 1), 2);
+                            break;
+                    }
+                    break;
+                case 0b00:
+                    if (bbb == 000) {bbb = I;}
+                    switch (aaa) {
+                        case 0b001:  {//BIT
+                            char mvalue = address(bbb, 0);
+                            f->setOverflow((mvalue >> 6) & 1);
+                            f->setNegative((mvalue >> 7) & 1);
+                            f->setZero((mvalue & a->getValue()) == 0);
+                        }break;
+                        case 0b010:  {//JMP (ind)
+                            pc->inc();
+                            extra.setValue(ram->getValue(pc->getWholeValue()));
+                            pc->inc();
+                            wchar_t target = ((ram->getValue(pc->getWholeValue()) << 8) + (extra.getValue()));
+                            pc->setWholeValue(target);   //first jump
+
+                            extra.setValue(ram->getValue(pc->getWholeValue()));
+                            pc->inc();
+                            target = ((ram->getValue(pc->getWholeValue()) << 8) + (extra.getValue()));
+                            pc->setWholeValue(target);   //second jump
+                            Clock::cycle(5);
+                        }break;
+                        case 0b011:  {//JMP (abs)
+                            pc->inc();
+                            extra.setValue(ram->getValue(pc->getWholeValue()));
+                            pc->inc();
+                            wchar_t target = ((ram->getValue(pc->getWholeValue()) << 8) + (extra.getValue()));
+                            pc->setWholeValue(target);
+                            Clock::cycle(3);
+                        }break;
+                        case 0b100:  //STY
+                            address(bbb, y->getValue(), 0);
+                            break;
+                        case 0b101:  //LDY
+                            y->setValue(address(bbb, 0));
+                            flags(x);
+                            break;
+                        case 0b110:  {//CPY
+                            char mvalue = address(bbb, 0);
+                            char yvalue = y->getValue();
+                            f->setCarry(yvalue >= mvalue);
+                            f->setZero(yvalue == mvalue);
+                            f->setNegative(yvalue < mvalue);
+                        }break;
+                        case 0b111:  {//CPX
+                            char mvalue = address(bbb, 0);
+                            char xvalue = x->getValue();
+                            f->setCarry(xvalue >= mvalue);
+                            f->setZero(xvalue == mvalue);
+                            f->setNegative(xvalue < mvalue);
+                        }break;
+                    }
+                    break;
+            }
+        }break;
+    }
+    pc->inc();
 }

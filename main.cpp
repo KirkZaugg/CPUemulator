@@ -26,6 +26,9 @@ int main() {
 
     Control control(&alu, &a, &x, &y, &ram, &s, &f, &p, &sp);
 
-    control.operate();
+    while (p.getWholeValue() < 0x1f) {
+        control.operate();
+    }
+    std::cout << a.getValue() << "\n";
     
 }

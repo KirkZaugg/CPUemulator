@@ -1,5 +1,5 @@
 #include<fstream>
-#include<ram.h>
+#include"ram.h"
 
 char RAM::getValue(wchar_t location) {
     std::ifstream inputFileStream(file, std::ios::in | std::ios::binary);
