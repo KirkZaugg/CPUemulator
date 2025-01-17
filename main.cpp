@@ -27,6 +27,5 @@ int main() {
     Control control(&alu, &a, &x, &y, &ram, &s, &f, &p, &sp);
 
     control.operate();
-    control.operate();
     
 }

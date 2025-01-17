@@ -124,41 +124,133 @@ void Control::flags(Register* inreg) {
     }
 }
 
+void Control::pushStack(char value) {
+    ram->setValue(sp->getValue() + 0x0100, value);
+    sp->setValue(sp->getValue() - 1);
+}
+char Control::pullStack() {
+    sp->setValue(sp->getValue() + 1);
+    return ram->getValue(sp->getValue() + 0x0100);
+}
+
 void Control::operate() {
 
-    bool run = true;
-
-    while(run) {
     
         inputreg.setValue(ram->getValue(pc->getWholeValue()));
 
         switch (inputreg.getValue()) {
             case 0x00: //BRK
             case 0x20: //JSR (abs)
-
+                pc->inc();
+                extra.setValue(ram->getValue(pc->getWholeValue()));
+                pc->inc();
+                wchar_t target = ((ram->getValue(pc->getWholeValue()) << 8) + (extra.getValue()));
+                pushStack(ram->getValue(pc->getWholeValue()) << 8);
+                pushStack(extra.getValue());
+                pc->setWholeValue(target);
+                Clock::cycle(6);
+                break;
             case 0x40: //RTI
             case 0x60: //RTS
+                char small = pullStack();
+                char big = pullStack();
+                wchar_t target = (big << 8) + small;
+                pc->setWholeValue(target);
+                Clock::cycle(6);
+                break;
             case 0x08: //PHP
+                pushStack(f->getValue());
+                Clock::cycle(3);
+                break;
             case 0x28: //PLP
+                f->setValue(pullStack());
+                Clock::cycle(4);
+                break;
             case 0x48: //PHA
+                pushStack(a->getValue());
+                Clock::cycle(3);
+                break;
             case 0x68: //PLA
+                a->setValue(pullStack());
+                Clock::cycle(4);
+                break;
             case 0x88: //DEY
+                y->setValue(y->getValue() - 1);
+                flags(y);
+                Clock::cycle(2);
+                break;
             case 0xA8: //TAY
+                y->setValue(a->getValue());
+                flags(y);
+                Clock::cycle(2);
+                break;
             case 0xC8: //INY
+                y->setValue(y->getValue() + 1);
+                flags(y);
+                Clock::cycle(2);
+                break;
             case 0xE8: //INX
+                x->setValue(x->getValue() + 1);
+                flags(x);
+                Clock::cycle(2);
+                break;
             case 0x18: //CLC
+                f->setCarry(0);
+                Clock::cycle(2);
+                break;
             case 0x38: //SEC
+                f->setCarry(1);
+                Clock::cycle(2);
+                break;
             case 0x58: //CLI
+                f->setID(0);
+                Clock::cycle(2);
+                break;
             case 0x78: //SEI
+                f->setID(1);
+                Clock::cycle(2);
+                break;
             case 0x98: //TYA
+                a->setValue(y->getValue());
+                flags(a);
+                Clock::cycle(2);
+                break;
             case 0xB8: //CLV
+                f->setOverflow(0);
+                Clock::cycle(2);
+                break;
             case 0xD8: //CLD
+                f->setDecimal(0);
+                Clock::cycle(2);
+                break;
             case 0xF8: //SED
+                f->setDecimal(1);
+                Clock::cycle(2);
+                break;
             case 0x8A: //TXA
+                a->setValue(x->getValue());
+                flags(a);
+                Clock::cycle(2);
+                break;
             case 0x9A: //TXS
+                pushStack(x->getValue());
+                Clock::cycle(2);
+                break;
             case 0xAA: //TAX
+                x->setValue(a->getValue());
+                flags(x);
+                Clock::cycle(2);
+                break;
             case 0xBA: //TSX
+                x->setValue(pullStack());
+                flags(x);
+                Clock::cycle(2);
+                break;
             case 0xCA: //DEX
+                x->setValue(x->getValue() - 1);
+                flags(x);
+                Clock::cycle(2);
+                break;
             case 0xEA: //NOP
                 Clock::cycle(2);
                 break;
@@ -388,5 +480,4 @@ void Control::operate() {
                 break;
         }
         pc->inc();
-    }
 }
