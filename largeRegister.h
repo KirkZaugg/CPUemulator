@@ -2,9 +2,9 @@
 
 class LargeRegister : public Register {
 protected:
-    char bigValue;
+    unsigned char bigValue;
 public:
-    void setBigValue(char inValue) {bigValue = inValue;}
+    void setBigValue(unsigned char inValue) {bigValue = inValue;}
     char getBigValue() {return bigValue;}
 
     void setWholeValue(wchar_t inValue) {setValue(inValue & 0xff); setBigValue(inValue >> 8);}

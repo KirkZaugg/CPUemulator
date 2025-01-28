@@ -11,7 +11,7 @@ char RAM::getValue(wchar_t location) {
 }
 
 void RAM::setValue(wchar_t location, char value) {
-    std::ofstream outputFileStream(file, std::ios::out | std::ios::binary);
+    std::ofstream outputFileStream(file, std::ios::in | std::ios::out | std::ios::binary);
     outputFileStream.seekp(location, std::ios::beg);
     outputFileStream.write(&value, 1);
     outputFileStream.close();

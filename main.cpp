@@ -27,8 +27,12 @@ int main() {
     Control control(&alu, &a, &x, &y, &ram, &s, &f, &p, &sp);
 
     while (p.getWholeValue() < 0x1f) {
+        int out = ram.getValue(p.getWholeValue());
+        int add = p.getWholeValue();
+        std::cout << std::hex << add << "    " << std::hex << out << "\n";
         control.operate();
     }
-    std::cout << a.getValue() << "\n";
+    int aval = a.getValue();
+    std::cout << aval << "\n";
     
 }

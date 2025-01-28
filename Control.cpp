@@ -119,8 +119,13 @@ char Control::addressManipFetch(char mode) {
 void Control::flags(Register* inreg) {
     if(inreg->getValue() == 0) {
         f->setZero(1);
-    } else if (inreg->getValue() < 0) {
+    } else {
+        f->setZero(0);
+    }
+    if (inreg->getValue() < 0) {
         f->setNegative(1);
+    } else {
+        f->setNegative(0);
     }
 }
 
@@ -135,10 +140,11 @@ char Control::pullStack() {
 
 void Control::operate() {
 
-    
-    inputreg.setValue(ram->getValue(pc->getWholeValue()));
+    char input = ram->getValue(pc->getWholeValue());
 
-    switch (inputreg.getValue()) {
+    unsigned char opcode = reinterpret_cast<unsigned char&>(input);
+
+    switch (opcode) {
         case 0x00: //BRK
         case 0x20: {//JSR (abs) 
             pc->inc();
@@ -255,9 +261,9 @@ void Control::operate() {
             Clock::cycle(2);
             break;
         default: {
-            if ((inputreg.getValue() & 0b00011111) == 0b10000) {
-                char xstuff = inputreg.getValue() >> 6;
-                bool ystuff = (inputreg.getValue() & 0b00100000) >> 5;
+            if ((opcode & 0b00011111) == 0b10000) {
+                char xstuff = opcode >> 6;
+                bool ystuff = (opcode & 0b00100000) >> 5;
 
                 bool branch;
 
@@ -280,24 +286,21 @@ void Control::operate() {
                     //BRANCH
                     pc->inc();
                     extra.setValue(ram->getValue(pc->getWholeValue()));
-                    for (int i = 0; i < extra.getValue(); i++) {
-                        pc->inc();
-                        if (0) { //Page cross REMEMBER TO IMPLEMENT PAGE CROSSING PLEASE
-                            Clock::cycle(2);
-                        }
-                    }
+                    pc->setWholeValue(pc->getWholeValue() + extra.getValue()); //remember to implement page crossing time
                     Clock::cycle(3);
+                    int out = pc->getWholeValue();
                 } else {
+                    pc->inc();
                     Clock::cycle(2);
                 }
                 break;
             }
 
             
-
-            char aaa = (inputreg.getValue() & 0b11100000) >> 5;
-            char bbb = (inputreg.getValue() & 0b00011100) >> 2; //addressing mode
-            char cc = inputreg.getValue() & 0b00000011;
+            
+            unsigned char aaa = (opcode & 0b11100000) >> 5;
+            unsigned char bbb = (opcode & 0b00011100) >> 2; //addressing mode
+            unsigned char cc = opcode & 0b00000011;
 
             switch (cc) {
                 case 0b01:
