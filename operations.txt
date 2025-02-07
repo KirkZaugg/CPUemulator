@@ -1,4 +1,0 @@
-Operations for control and stuff:
-
-JMP    0x11
-

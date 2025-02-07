@@ -40,7 +40,12 @@ private:
     void flags(Register* inreg);
     void pushStack(char value);
     char pullStack();
+
+    void interrupt(unsigned char vector);
 public:
     Control(ALU* inALU, Register* ina, Register* inx, Register* iny, RAM* inRam, Register* ins, StatusRegister* inf, ProgramCounter* inpc, Register* insp);
     void operate();
+    void reset();
+    void NMI();
+    void IRQ();
 };

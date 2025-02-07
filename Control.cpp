@@ -17,6 +17,8 @@ Control::Control(ALU* inALU, Register* ina, Register* inx, Register* iny, RAM* i
     ram = inRam;
     pc = inpc;
     sp = insp;
+
+
 }
 
 char Control::address(char mode, int offset) {
@@ -138,14 +140,39 @@ char Control::pullStack() {
     return ram->getValue(sp->getValue() + 0x0100);
 }
 
+void Control::NMI() {
+    interrupt(0xfa);
+}
+
+void Control::IRQ() {
+    interrupt(0xfe);
+}
+
+void Control::reset() {
+    Clock::cycle(6);
+    pc->setWholeValue((ram->getValue(0xfffc) + (ram->getValue(0xfffd) << 8)) & 0xffff);
+}
+
+void Control::interrupt(unsigned char vector) {
+    pushStack(pc->getBigValue());
+    pushStack(pc->getValue());
+    pushStack(f->getValue());
+    f->setID(1);
+    pc->setWholeValue(0xff00 | vector);
+}
+
 void Control::operate() {
 
     char input = ram->getValue(pc->getWholeValue());
 
     unsigned char opcode = reinterpret_cast<unsigned char&>(input);
+    int op = opcode;
+    std::cout << "op:" << std::hex << op << "   ";
 
     switch (opcode) {
         case 0x00: //BRK
+            interrupt(0xfe);
+            break;
         case 0x20: {//JSR (abs) 
             pc->inc();
             extra.setValue(ram->getValue(pc->getWholeValue()));
@@ -156,7 +183,13 @@ void Control::operate() {
             pc->setWholeValue(target);
             Clock::cycle(6);
         }break;
-        case 0x40: //RTI
+        case 0x40: {//RTI
+            char small = pullStack();
+            char big = pullStack();
+            wchar_t target = (big << 8) + small;
+            pc->setWholeValue(target);
+            Clock::cycle(6);
+        }
         case 0x60: {//RTS
             char small = pullStack();
             char big = pullStack();

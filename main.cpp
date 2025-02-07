@@ -26,13 +26,12 @@ int main() {
 
     Control control(&alu, &a, &x, &y, &ram, &s, &f, &p, &sp);
 
-    while (p.getWholeValue() < 0x1f) {
-        int out = ram.getValue(p.getWholeValue());
-        int add = p.getWholeValue();
-        std::cout << std::hex << add << "    " << std::hex << out << "\n";
+    control.reset();
+    for (int i = 0; i < 20; i++) {
+        int addr = p.getWholeValue();
+        int val = ram.getValue(p.getWholeValue());
+        std::cout << "\naddr:" << std::hex << addr << "    val:" << std::hex << val << "    ";
         control.operate();
     }
-    int aval = a.getValue();
-    std::cout << aval << "\n";
     
 }
