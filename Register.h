@@ -2,8 +2,8 @@
 
 class Register {
 protected:
-    char value;
+    unsigned char value;
 public:
-    void setValue(char inValue) {value = inValue;}
-    char getValue() {return value;}
+    void setValue(unsigned char inValue) {value = inValue;}
+    unsigned char getValue() {return value;}
 };

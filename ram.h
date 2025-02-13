@@ -15,7 +15,7 @@ private:
     uint8_t address(uint16_t location, bool write);
     uint8_t readROM(uint16_t location);
 public:
-    char getValue(uint16_t location);
+    uint8_t getValue(uint16_t location);
     void setValue(uint16_t location, uint8_t value);
     void setMapper(int imapper);
     RAM();

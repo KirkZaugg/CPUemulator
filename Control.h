@@ -34,14 +34,14 @@ private:
         INDIX = 0b100
     };
 
-    char address(char mode, int offset);
-    void address(char mode, char inValue, int offset);
-    char addressManipFetch(char mode);
+    uint8_t address(uint8_t mode, int offset);
+    void address(uint8_t mode, uint8_t inValue, int offset);
+    uint8_t addressManipFetch(uint8_t mode);
     void flags(Register* inreg);
-    void pushStack(char value);
-    char pullStack();
+    void pushStack(uint8_t value);
+    uint8_t pullStack();
 
-    void interrupt(unsigned char vector);
+    void interrupt(uint8_t vector);
 public:
     Control(ALU* inALU, Register* ina, Register* inx, Register* iny, RAM* inRam, Register* ins, StatusRegister* inf, ProgramCounter* inpc, Register* insp);
     void operate();

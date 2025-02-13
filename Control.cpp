@@ -21,7 +21,7 @@ Control::Control(ALU* inALU, Register* ina, Register* inx, Register* iny, RAM* i
 
 }
 
-char Control::address(char mode, int offset) {
+uint8_t Control::address(uint8_t mode, int offset) {
     switch (mode) {
         case AB:
             pc->inc();
@@ -58,7 +58,7 @@ char Control::address(char mode, int offset) {
     return 0;
 }
 
-void Control::address(char mode, char inValue, int offset) {
+void Control::address(uint8_t mode, uint8_t inValue, int offset) {
     switch (mode) {
         case AB:
             pc->inc();
@@ -93,7 +93,7 @@ void Control::address(char mode, char inValue, int offset) {
     }
 }
 
-char Control::addressManipFetch(char mode) {
+uint8_t Control::addressManipFetch(uint8_t mode) {
     switch (mode) {
         case AB:
             return (ram->getValue(ram->getValue(pc->getWholeValue() + 2) + (ram->getValue(pc->getWholeValue() + 1) << 8)));
@@ -119,23 +119,15 @@ char Control::addressManipFetch(char mode) {
 }
 
 void Control::flags(Register* inreg) {
-    if(inreg->getValue() == 0) {
-        f->setZero(1);
-    } else {
-        f->setZero(0);
-    }
-    if (inreg->getValue() < 0) {
-        f->setNegative(1);
-    } else {
-        f->setNegative(0);
-    }
+    f->setZero(inreg->getValue() == 0);
+    f->setNegative(inreg->getValue() & 0x80);
 }
 
-void Control::pushStack(char value) {
+void Control::pushStack(uint8_t value) {
     ram->setValue(sp->getValue() + 0x0100, value);
     sp->setValue(sp->getValue() - 1);
 }
-char Control::pullStack() {
+uint8_t Control::pullStack() {
     sp->setValue(sp->getValue() + 1);
     return ram->getValue(sp->getValue() + 0x0100);
 }
@@ -150,10 +142,12 @@ void Control::IRQ() {
 
 void Control::reset() {
     Clock::cycle(6);
-    pc->setWholeValue((ram->getValue(0xfffc) + (ram->getValue(0xfffd) << 8)) & 0xffff);
+    uint16_t resvec = (ram->getValue(0xfffc) + (ram->getValue(0xfffd) << 8)) & 0xffff;
+    pc->setWholeValue(resvec);
+    std::cout << "reset: " << std::hex << resvec << "\n";
 }
 
-void Control::interrupt(unsigned char vector) {
+void Control::interrupt(uint8_t vector) {
     pushStack(pc->getBigValue());
     pushStack(pc->getValue());
     pushStack(f->getValue());
@@ -163,9 +157,7 @@ void Control::interrupt(unsigned char vector) {
 
 void Control::operate() {
 
-    char input = ram->getValue(pc->getWholeValue());
-
-    unsigned char opcode = reinterpret_cast<unsigned char&>(input);
+    uint8_t opcode = ram->getValue(pc->getWholeValue());
     int op = opcode;
     std::cout << "op:" << std::hex << op << "   ";
 
@@ -184,16 +176,16 @@ void Control::operate() {
             Clock::cycle(6);
         }break;
         case 0x40: {//RTI
-            char small = pullStack();
-            char big = pullStack();
-            wchar_t target = (big << 8) + small;
+            uint8_t small = pullStack();
+            uint8_t big = pullStack();
+            uint16_t target = (big << 8) + small;
             pc->setWholeValue(target);
             Clock::cycle(6);
         }
         case 0x60: {//RTS
-            char small = pullStack();
-            char big = pullStack();
-            wchar_t target = (big << 8) + small;
+            uint8_t small = pullStack();
+            uint8_t big = pullStack();
+            uint16_t target = (big << 8) + small;
             pc->setWholeValue(target);
             Clock::cycle(6);
         }break;
@@ -295,7 +287,7 @@ void Control::operate() {
             break;
         default: {
             if ((opcode & 0b00011111) == 0b10000) {
-                char xstuff = opcode >> 6;
+                uint8_t xstuff = opcode >> 6;
                 bool ystuff = (opcode & 0b00100000) >> 5;
 
                 bool branch;

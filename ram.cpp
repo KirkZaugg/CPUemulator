@@ -35,11 +35,13 @@ uint8_t RAM::address(uint16_t location, bool write) {
             return 0;
         } else {
             index = location - 0x6000;
+            
             return readROM(location);
         }
 
     }
-
+    std::cout << "Huh\n";
+    return 0;
 }
 
 uint8_t RAM::readROM(uint16_t location) {
@@ -52,7 +54,7 @@ uint8_t RAM::readROM(uint16_t location) {
     return ret;
 }
 
-char RAM::getValue(uint16_t location) {
+uint8_t RAM::getValue(uint16_t location) {
 
     return address(location, 0);
 
@@ -76,6 +78,6 @@ void RAM::setMapper(int imapper) {
 }
 
 RAM::RAM() {
-    file = "Tetris.nes";
+    file = "Super_mario_brothers.nes";
     mapper = 0;
 }
