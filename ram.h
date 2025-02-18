@@ -18,5 +18,5 @@ public:
     uint8_t getValue(uint16_t location);
     void setValue(uint16_t location, uint8_t value);
     void setMapper(int imapper);
-    RAM();
+    RAM(std::string filename);
 };

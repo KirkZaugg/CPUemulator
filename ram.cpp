@@ -33,10 +33,11 @@ uint8_t RAM::address(uint16_t location, bool write) {
         } else if (location < 0x6000) {
             std::cout << "\nMemory Access error: $4020-5fff is unmapped\n";
             return 0;
+        } else if (location < 0x8000) {
+            //cartridge RAM???
         } else {
-            index = location - 0x6000;
-            
-            return readROM(location);
+            index = location - 0x8000;
+            return readROM(index);
         }
 
     }
@@ -77,7 +78,7 @@ void RAM::setMapper(int imapper) {
     mapper = imapper;
 }
 
-RAM::RAM() {
-    file = "Super_mario_brothers.nes";
+RAM::RAM(std::string filename) {
+    file = filename;
     mapper = 0;
 }

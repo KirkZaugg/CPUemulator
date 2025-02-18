@@ -6,6 +6,8 @@
 #include"ram.h"
 #include"Control.h"
 #include"StatusRegister.h"
+#include"PPUbus.h"
+#include"PPU.h"
 
 int main() {
     Register a;
@@ -17,9 +19,14 @@ int main() {
     StatusRegister f;
     f.setValue(0b00110000); //set inoperable bits
 
-    char bus;
+    Register PPUctrl[8];
+
+    uint8_t bus;
     ALU alu(&a, &x, &y);
-    RAM ram;
+
+    const std::string filename = "Super_mario_brothers.nes";
+    RAM ram(filename);
+    PPUbus pbus(filename);
 
     ProgramCounter p;
     p.setWholeValue(0);

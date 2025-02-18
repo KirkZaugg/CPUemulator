@@ -1,9 +1,11 @@
+#include<cstdint>
+
 #pragma once
 
 class Register {
 protected:
-    unsigned char value;
+    uint8_t value;
 public:
-    void setValue(unsigned char inValue) {value = inValue;}
-    unsigned char getValue() {return value;}
+    void setValue(uint8_t inValue) {value = inValue;}
+    uint8_t getValue() {return value;}
 };

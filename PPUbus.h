@@ -1,4 +1,6 @@
 #include<cstdint>
+#include<string>
+#pragma once
 
 class PPUbus {
 private:
@@ -9,4 +11,6 @@ private:
 public:
     uint8_t read(uint16_t location);
     void write(uint16_t location, uint8_t value);
+
+    PPUbus(std::string filename);
 };

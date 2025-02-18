@@ -169,7 +169,7 @@ void Control::operate() {
             pc->inc();
             extra.setValue(ram->getValue(pc->getWholeValue()));
             pc->inc();
-            wchar_t target = ((ram->getValue(pc->getWholeValue()) << 8) + (extra.getValue()));
+            uint16_t target = ((ram->getValue(pc->getWholeValue()) << 8) + (extra.getValue()));
             pushStack(ram->getValue(pc->getWholeValue()) << 8);
             pushStack(extra.getValue());
             pc->setWholeValue(target);
@@ -323,9 +323,9 @@ void Control::operate() {
 
             
             
-            unsigned char aaa = (opcode & 0b11100000) >> 5;
-            unsigned char bbb = (opcode & 0b00011100) >> 2; //addressing mode
-            unsigned char cc = opcode & 0b00000011;
+            uint8_t aaa = (opcode & 0b11100000) >> 5;
+            uint8_t bbb = (opcode & 0b00011100) >> 2; //addressing mode
+            uint8_t cc = opcode & 0b00000011;
 
             switch (cc) {
                 case 0b01:
@@ -356,7 +356,7 @@ void Control::operate() {
                             flags(a);
                             break;
                         case 0b110: { //CMP
-                            char extra = a->getValue() - address(bbb, 0);
+                            uint8_t extra = a->getValue() - address(bbb, 0);
                             if (extra < 0) {
                                 f->setNegative(1);
                             } else if (extra == 0) {
@@ -454,7 +454,7 @@ void Control::operate() {
                     if (bbb == 000) {bbb = I;}
                     switch (aaa) {
                         case 0b001:  {//BIT
-                            char mvalue = address(bbb, 0);
+                            uint8_t mvalue = address(bbb, 0);
                             f->setOverflow((mvalue >> 6) & 1);
                             f->setNegative((mvalue >> 7) & 1);
                             f->setZero((mvalue & a->getValue()) == 0);
@@ -463,7 +463,7 @@ void Control::operate() {
                             pc->inc();
                             extra.setValue(ram->getValue(pc->getWholeValue()));
                             pc->inc();
-                            wchar_t target = ((ram->getValue(pc->getWholeValue()) << 8) + (extra.getValue()));
+                            uint16_t target = ((ram->getValue(pc->getWholeValue()) << 8) + (extra.getValue()));
                             pc->setWholeValue(target);   //first jump
 
                             extra.setValue(ram->getValue(pc->getWholeValue()));
@@ -476,7 +476,7 @@ void Control::operate() {
                             pc->inc();
                             extra.setValue(ram->getValue(pc->getWholeValue()));
                             pc->inc();
-                            wchar_t target = ((ram->getValue(pc->getWholeValue()) << 8) + (extra.getValue()));
+                            uint16_t target = ((ram->getValue(pc->getWholeValue()) << 8) + (extra.getValue()));
                             pc->setWholeValue(target);
                             Clock::cycle(3);
                         }break;
@@ -488,15 +488,15 @@ void Control::operate() {
                             flags(x);
                             break;
                         case 0b110:  {//CPY
-                            char mvalue = address(bbb, 0);
-                            char yvalue = y->getValue();
+                            uint8_t mvalue = address(bbb, 0);
+                            uint8_t yvalue = y->getValue();
                             f->setCarry(yvalue >= mvalue);
                             f->setZero(yvalue == mvalue);
                             f->setNegative(yvalue < mvalue);
                         }break;
                         case 0b111:  {//CPX
-                            char mvalue = address(bbb, 0);
-                            char xvalue = x->getValue();
+                            uint8_t mvalue = address(bbb, 0);
+                            uint8_t xvalue = x->getValue();
                             f->setCarry(xvalue >= mvalue);
                             f->setZero(xvalue == mvalue);
                             f->setNegative(xvalue < mvalue);
