@@ -4,8 +4,8 @@
 class RAM {
 private:
 
-    Register* PPUctrl[8];
-    Register* miscReg[0x20];
+    Register* PPUctrl;
+    Register* miscReg;
 
     uint8_t cpuRam[0x800];
 
@@ -18,5 +18,5 @@ public:
     uint8_t getValue(uint16_t location);
     void setValue(uint16_t location, uint8_t value);
     void setMapper(int imapper);
-    RAM(std::string filename);
+    RAM(std::string filename, Register* PPU, Register* misc);
 };

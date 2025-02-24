@@ -17,18 +17,18 @@ uint8_t RAM::address(uint16_t location, bool write) {
         } else if (location < 0x4000) {
             index = location & 0x7;
             if (write) {
-                PPUctrl[index]->setValue(writeValue);
+                (PPUctrl + index)->setValue(writeValue);
                 return 0;
             } else {
-                return PPUctrl[index]->getValue();
+                return (PPUctrl + index)->getValue();
             }
         } else if (location < 0x4020){
             index = location & 0x1f;
             if (write) {
-                miscReg[index]->setValue(writeValue);
+                (miscReg + index)->setValue(writeValue);
                 return 0;
             } else {
-                return miscReg[index]->getValue();
+                return (miscReg + index)->getValue();
             }
         } else if (location < 0x6000) {
             std::cout << "\nMemory Access error: $4020-5fff is unmapped\n";
@@ -78,7 +78,10 @@ void RAM::setMapper(int imapper) {
     mapper = imapper;
 }
 
-RAM::RAM(std::string filename) {
+RAM::RAM(std::string filename, Register* PPU, Register* misc) {
     file = filename;
     mapper = 0;
+
+    PPUctrl = PPU;
+    miscReg = misc;
 }

@@ -20,12 +20,13 @@ int main() {
     f.setValue(0b00110000); //set inoperable bits
 
     Register PPUctrl[8];
+    Register misc[0x20];
 
     uint8_t bus;
     ALU alu(&a, &x, &y);
 
     const std::string filename = "Super_mario_brothers.nes";
-    RAM ram(filename);
+    RAM ram(filename, PPUctrl, misc);
     PPUbus pbus(filename);
 
     ProgramCounter p;
