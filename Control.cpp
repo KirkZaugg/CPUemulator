@@ -7,7 +7,7 @@
 #include"StatusRegister.h"
 #include"Clock.h"
 
-Control::Control(ALU* inALU, Register* ina, Register* inx, Register* iny, RAM* inRam, Register* ins, StatusRegister* inf, ProgramCounter* inpc, Register* insp) {
+Control::Control(ALU* inALU, Register* ina, Register* inx, Register* iny, RAM* inRam, Register* ins, StatusRegister* inf, ProgramCounter* inpc, Register* insp, Clock* iclock) {
     alu = inALU;
     a = ina;
     x = inx;
@@ -17,29 +17,31 @@ Control::Control(ALU* inALU, Register* ina, Register* inx, Register* iny, RAM* i
     ram = inRam;
     pc = inpc;
     sp = insp;
-
+    clock = iclock;
 
 }
 
 uint8_t Control::address(uint8_t mode, int offset) {
     switch (mode) {
-        case AB:
+        case AB: {
             pc->inc();
             extra.setValue(ram->getValue(pc->getWholeValue()));
             pc->inc();
-            return (ram->getValue(ram->getValue(pc->getWholeValue()) + (extra.getValue() << 8)));
-            break;
+            int outtest = (extra.getValue() + (ram->getValue(pc->getWholeValue()) << 8));
+            std::cout << " " << outtest << " ";
+            return (extra.getValue() + (ram->getValue(pc->getWholeValue()) << 8));
+        }break;
         case ABX:
             pc->inc();
             extra.setValue(ram->getValue(pc->getWholeValue()));
             pc->inc();
-            return (ram->getValue(ram->getValue(pc->getWholeValue()) + (extra.getValue() << 8) + x->getValue()));
+            return (extra.getValue() + (ram->getValue(pc->getWholeValue()) << 8) + x->getValue());
             break;
         case ABY:
             pc->inc();
             extra.setValue(ram->getValue(pc->getWholeValue()));
             pc->inc();
-            return (ram->getValue(ram->getValue(pc->getWholeValue()) + (extra.getValue() << 8) + y->getValue()));
+            return (extra.getValue() + (ram->getValue(pc->getWholeValue()) << 8) + y->getValue());
             break;
         case I:
             pc->inc();
@@ -60,23 +62,23 @@ uint8_t Control::address(uint8_t mode, int offset) {
 
 void Control::address(uint8_t mode, uint8_t inValue, int offset) {
     switch (mode) {
-        case AB:
+        case AB: 
             pc->inc();
             extra.setValue(ram->getValue(pc->getWholeValue()));
             pc->inc();
-            ram->setValue(ram->getValue(pc->getWholeValue()) + (extra.getValue() << 8), inValue);
+            ram->setValue((ram->getValue(pc->getWholeValue()) << 8) + extra.getValue(), inValue);
             break;
         case ABX:
             pc->inc();
             extra.setValue(ram->getValue(pc->getWholeValue()));
             pc->inc();
-            ram->setValue(ram->getValue(pc->getWholeValue()) + (extra.getValue() << 8) + x->getValue(), inValue);
+            ram->setValue((ram->getValue(pc->getWholeValue()) << 8) + extra.getValue() + x->getValue(), inValue);
             break;
         case ABY:
             pc->inc();
             extra.setValue(ram->getValue(pc->getWholeValue()));
             pc->inc();
-            ram->setValue(ram->getValue(pc->getWholeValue()) + (extra.getValue() << 8) + y->getValue(), inValue);
+            ram->setValue((ram->getValue(pc->getWholeValue()) << 8) + extra.getValue() + y->getValue(), inValue);
             break;
         case I:
             pc->inc();
@@ -96,13 +98,13 @@ void Control::address(uint8_t mode, uint8_t inValue, int offset) {
 uint8_t Control::addressManipFetch(uint8_t mode) {
     switch (mode) {
         case AB:
-            return (ram->getValue(ram->getValue(pc->getWholeValue() + 2) + (ram->getValue(pc->getWholeValue() + 1) << 8)));
+            return (ram->getValue(ram->getValue(pc->getWholeValue() + 1) + (ram->getValue(pc->getWholeValue() + 2) << 8)));
             break;
         case ABX:
-            return (ram->getValue(ram->getValue(pc->getWholeValue() + 2) + (ram->getValue(pc->getWholeValue() + 1) << 8) + x->getValue()));
+            return (ram->getValue(ram->getValue(pc->getWholeValue() + 1) + (ram->getValue(pc->getWholeValue() + 2) << 8) + x->getValue()));
             break;
         case ABY:
-            return (ram->getValue(ram->getValue(pc->getWholeValue() + 2) + (ram->getValue(pc->getWholeValue() + 1) << 8) + y->getValue()));
+            return (ram->getValue(ram->getValue(pc->getWholeValue() + 1) + (ram->getValue(pc->getWholeValue() + 2) << 8) + y->getValue()));
             break;
         case I:
             return (ram->getValue(pc->getWholeValue() + 1));
@@ -141,7 +143,7 @@ void Control::IRQ() {
 }
 
 void Control::reset() {
-    Clock::cycle(6);
+    clock->cycle(6);
     uint16_t resvec = (ram->getValue(0xfffc) + (ram->getValue(0xfffd) << 8)) & 0xffff;
     pc->setWholeValue(resvec);
     std::cout << "reset: " << std::hex << resvec << "\n";
@@ -173,117 +175,117 @@ void Control::operate() {
             pushStack(ram->getValue(pc->getWholeValue()) << 8);
             pushStack(extra.getValue());
             pc->setWholeValue(target);
-            Clock::cycle(6);
+            clock->cycle(6);
         }break;
         case 0x40: {//RTI
             uint8_t small = pullStack();
             uint8_t big = pullStack();
             uint16_t target = (big << 8) + small;
             pc->setWholeValue(target);
-            Clock::cycle(6);
+            clock->cycle(6);
         }
         case 0x60: {//RTS
             uint8_t small = pullStack();
             uint8_t big = pullStack();
             uint16_t target = (big << 8) + small;
             pc->setWholeValue(target);
-            Clock::cycle(6);
+            clock->cycle(6);
         }break;
         case 0x08: //PHP
             pushStack(f->getValue());
-            Clock::cycle(3);
+            clock->cycle(3);
             break;
         case 0x28: //PLP
             f->setValue(pullStack());
-            Clock::cycle(4);
+            clock->cycle(4);
             break;
         case 0x48: //PHA
             pushStack(a->getValue());
-            Clock::cycle(3);
+            clock->cycle(3);
             break;
         case 0x68: //PLA
             a->setValue(pullStack());
-            Clock::cycle(4);
+            clock->cycle(4);
             break;
         case 0x88: //DEY
             y->setValue(y->getValue() - 1);
             flags(y);
-            Clock::cycle(2);
+            clock->cycle(2);
             break;
         case 0xA8: //TAY
             y->setValue(a->getValue());
             flags(y);
-            Clock::cycle(2);
+            clock->cycle(2);
             break;
         case 0xC8: //INY
             y->setValue(y->getValue() + 1);
             flags(y);
-            Clock::cycle(2);
+            clock->cycle(2);
             break;
         case 0xE8: //INX
             x->setValue(x->getValue() + 1);
             flags(x);
-            Clock::cycle(2);
+            clock->cycle(2);
             break;
         case 0x18: //CLC
             f->setCarry(0);
-            Clock::cycle(2);
+            clock->cycle(2);
             break;
         case 0x38: //SEC
             f->setCarry(1);
-            Clock::cycle(2);
+            clock->cycle(2);
             break;
         case 0x58: //CLI
             f->setID(0);
-            Clock::cycle(2);
+            clock->cycle(2);
             break;
         case 0x78: //SEI
             f->setID(1);
-            Clock::cycle(2);
+            clock->cycle(2);
             break;
         case 0x98: //TYA
             a->setValue(y->getValue());
             flags(a);
-            Clock::cycle(2);
+            clock->cycle(2);
             break;
         case 0xB8: //CLV
             f->setOverflow(0);
-            Clock::cycle(2);
+            clock->cycle(2);
             break;
         case 0xD8: //CLD
             f->setDecimal(0);
-            Clock::cycle(2);
+            clock->cycle(2);
             break;
         case 0xF8: //SED
             f->setDecimal(1);
-            Clock::cycle(2);
+            clock->cycle(2);
             break;
         case 0x8A: //TXA
             a->setValue(x->getValue());
             flags(a);
-            Clock::cycle(2);
+            clock->cycle(2);
             break;
         case 0x9A: //TXS
             pushStack(x->getValue());
-            Clock::cycle(2);
+            clock->cycle(2);
             break;
         case 0xAA: //TAX
             x->setValue(a->getValue());
             flags(x);
-            Clock::cycle(2);
+            clock->cycle(2);
             break;
         case 0xBA: //TSX
             x->setValue(pullStack());
             flags(x);
-            Clock::cycle(2);
+            clock->cycle(2);
             break;
         case 0xCA: //DEX
             x->setValue(x->getValue() - 1);
             flags(x);
-            Clock::cycle(2);
+            clock->cycle(2);
             break;
         case 0xEA: //NOP
-            Clock::cycle(2);
+        clock->cycle(2);
             break;
         default: {
             if ((opcode & 0b00011111) == 0b10000) {
@@ -312,11 +314,11 @@ void Control::operate() {
                     pc->inc();
                     extra.setValue(ram->getValue(pc->getWholeValue()));
                     pc->setWholeValue(pc->getWholeValue() + extra.getValue()); //remember to implement page crossing time
-                    Clock::cycle(3);
+                    clock->cycle(3);
                     int out = pc->getWholeValue();
                 } else {
                     pc->inc();
-                    Clock::cycle(2);
+                    clock->cycle(2);
                 }
                 break;
             }
@@ -386,7 +388,7 @@ void Control::operate() {
                             if (bbb == A) {
                                 f->setCarry(a->getValue() >> 7);
                                 a->setValue(a->getValue() << 1);
-                                Clock::cycle(2);
+                                clock->cycle(2);
                             } else {
                                 extra.setValue(addressManipFetch(bbb));
                                 f->setCarry(extra.getValue() >> 7);
@@ -399,7 +401,7 @@ void Control::operate() {
                             if(bbb == A) {
                                 f->setCarry(a->getValue() & 0x80);
                                 a->setValue((a->getValue() << 1) + car);
-                                Clock::cycle(2);
+                                clock->cycle(2);
                             } else {
                                 extra.setValue(addressManipFetch(bbb));
                                 f->setCarry(extra.getValue() & 0x80);
@@ -411,7 +413,7 @@ void Control::operate() {
                             if (bbb == A) {
                                 f->setCarry(a->getValue() & 1);
                                 a->setValue(a->getValue() >> 1);
-                                Clock::cycle(2);
+                                clock->cycle(2);
                             } else {
                                 extra.setValue(addressManipFetch(bbb));
                                 f->setCarry(extra.getValue() & 1);
@@ -424,7 +426,7 @@ void Control::operate() {
                             if(bbb == A) {
                                 f->setCarry(a->getValue() & 1);
                                 a->setValue((a->getValue() >> 1) + (0x80 * car));
-                                Clock::cycle(2);
+                                clock->cycle(2);
                             } else {
                                 extra.setValue(addressManipFetch(bbb));
                                 f->setCarry(extra.getValue() & 1);
@@ -470,7 +472,7 @@ void Control::operate() {
                             pc->inc();
                             target = ((ram->getValue(pc->getWholeValue()) << 8) + (extra.getValue()));
                             pc->setWholeValue(target);   //second jump
-                            Clock::cycle(5);
+                            clock->cycle(5);
                         }break;
                         case 0b011:  {//JMP (abs)
                             pc->inc();
@@ -478,7 +480,7 @@ void Control::operate() {
                             pc->inc();
                             uint16_t target = ((ram->getValue(pc->getWholeValue()) << 8) + (extra.getValue()));
                             pc->setWholeValue(target);
-                            Clock::cycle(3);
+                            clock->cycle(3);
                         }break;
                         case 0b100:  //STY
                             address(bbb, y->getValue(), 0);

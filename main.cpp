@@ -8,6 +8,7 @@
 #include"StatusRegister.h"
 #include"PPUbus.h"
 #include"PPU.h"
+#include"Clock.h"
 
 int main() {
     Register a;
@@ -19,7 +20,10 @@ int main() {
     StatusRegister f;
     f.setValue(0b00110000); //set inoperable bits
 
+
+
     Register PPUctrl[8];
+    Register oamdma;
     Register misc[0x20];
 
     uint8_t bus;
@@ -29,10 +33,15 @@ int main() {
     RAM ram(filename, PPUctrl, misc);
     PPUbus pbus(filename);
 
+
+    PPU ppu(PPUctrl, &oamdma, &pbus);
+
     ProgramCounter p;
     p.setWholeValue(0);
 
-    Control control(&alu, &a, &x, &y, &ram, &s, &f, &p, &sp);
+    Clock clock(&ppu);
+
+    Control control(&alu, &a, &x, &y, &ram, &s, &f, &p, &sp, &clock);
 
     control.reset();
     for (int i = 0; i < 20; i++) {
@@ -41,5 +50,5 @@ int main() {
         std::cout << "\naddr:" << std::hex << addr << "    val:" << std::hex << val << "    ";
         control.operate();
     }
-    
+    std::cout << "\n";
 }

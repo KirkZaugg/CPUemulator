@@ -1,31 +1,80 @@
 #include"PPU.h"
 #include"Register.h"
-#include"Clock.h"
 
-PPU::PPU(Register* ictrl, Register* ioamdma, PPUbus* ibus, bool imirror) {
-    ctrl = ictrl;
+PPU::PPU(Register* ictrl, Register* ioamdma, PPUbus* ibus) {
+    ppuctrl = ictrl;
+    ppumask = ictrl + 1;
+    ppustatus = ictrl + 2;
+    oamaddr = ictrl + 3;
+    oamdata = ictrl + 4;
+    ppuscroll = ictrl + 5;
+    ppuaddr = ictrl + 6;
+    ppudata = ictrl + 7;
+    
     oamdma = ioamdma;
     bus = ibus;
-    mirror = imirror? VERTICAL : HORIZONTAL;
 }
 
-void PPU::renderFrame() {
-    for (int i = 0; i < 262; i++) {
-        scanLine(i);
-    }
-}
 
-void PPU::scanLine(int line) {
+
+void PPU::draw() {
     bool render = true;
     if(render) {
+        
         if (line < 240) { //visible
+            for (int i = 0; i < 341; i++) {
+                if ((i < 257) || ((i > 320) && (i < 337))) {
+                    if (i == 256) {               //y inc
+                        if ((v & 0x7000) == 0x7000) {
+                            v &= ~0x7000;
+                            uint8_t cy = (v & 0x03E0) >> 5;
+                            if (cy == 29) {
+                                cy = 0;
+                                v ^= 0x0800;
+                            } else if (cy == 31) {
+                                cy == 0;
+                            } else {
+                                cy++;
+                            }
+                            v = (v & ~0x03E0) | (cy << 5);
+                        } else {
+                            v += 0x1000;
+                        }
+                    }
+                    int j = i % 8;
+                    if (j == 0) {
+                        currTile = midTile;
+                        midTile = nextTile;
+                        if (i==0) {} else {   //x inc
+                            if ((v & 0x001f) == 31) {
+                                v &= ~0x001f;
+                                v ^= 0x400;
+                            } else {
+                                v++;
+                            }
+                        }
+                    } else if (j == 1) {
+                        nextTile.name = fetchNametable(v & 0xfff);
+                    } else if (j == 3) {
+                        nextTile.attribute = fetchNametable(0x3C0 | (v & 0x0c00) | ((v >> 4) & 0x38) | ((v >> 2) & 0x07));
+                    } else if (j == 5) {
+                        bool side = (ppuctrl->getValue() >> 4) & 1;
+                        uint8_t finey = (v & 0xf00) >> 12;
+                        uint16_t location = ((side << 12) + (nextTile.name << 4) + finey) & 0xfff7;
+                        uint8_t lsb = bus->read(location);
+                        uint8_t msb = bus->read(location | 0b1000);
+                        nextTile.patt_lsb = lsb;
+                        nextTile.patt_msb = msb;
+                    }
+                } else if (i == 257){ //hori(v) = hori(t)
+                    v &= ~0x001F;
+                    v |= (t & 0x001f);
+                }
 
-            for (int i = 0; i < 283; i++) {
-                uint8_t name = fetchNametable();
             }
 
         } else if (line == 240) { //postrender
-            Clock::pcycle(1);
+            
         } else if (line < 261) { //vblank
             if (line == 241) {
                 //set NMI

@@ -3,6 +3,7 @@
 #include"ProgramCounter.h"
 #include"StatusRegister.h"
 #include"ram.h"
+#include "Clock.h"
 
 class Control {
 private:
@@ -19,6 +20,8 @@ private:
     ProgramCounter* pc;
 
     RAM* ram;
+
+    Clock* clock;
 
     enum Addmode {
         A = 0b1010,
@@ -43,7 +46,7 @@ private:
 
     void interrupt(uint8_t vector);
 public:
-    Control(ALU* inALU, Register* ina, Register* inx, Register* iny, RAM* inRam, Register* ins, StatusRegister* inf, ProgramCounter* inpc, Register* insp);
+    Control(ALU* inALU, Register* ina, Register* inx, Register* iny, RAM* inRam, Register* ins, StatusRegister* inf, ProgramCounter* inpc, Register* insp, Clock* iclock);
     void operate();
     void reset();
     void NMI();

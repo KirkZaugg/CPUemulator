@@ -1,15 +1,32 @@
+#pragma once
 #include"PPUbus.h"
+#include"Register.h"
 
 class PPU {
 private:
     PPUbus* bus;
+
+    uint16_t v;
+    uint16_t t;
+    uint8_t x;
+    bool w;
+
+    Register* ppuctrl;
+    Register* ppumask;
+    Register* ppustatus;
+    Register* oamaddr;
+    Register* oamdata;
+    Register* ppuscroll;
+    Register* ppuaddr;
+    Register* ppudata;
 
     uint8_t oam[64][4];
     uint8_t oam2[32];
     Register* oamdma;
     void spriteEval();
 
-    Register* ctrl;
+    int pix;
+    int line;
 
     uint8_t nametableA[0x400];
     uint8_t nametableB[0x400];
@@ -19,11 +36,21 @@ private:
     }; mirror mirror;
     uint8_t fetchNametable(uint16_t location);
 
+    struct Tile {
+        uint8_t name;
+        uint8_t attribute;
+        uint8_t patt_msb;
+        uint8_t patt_lsb;
+    };
+    Tile currTile;
+    Tile midTile;
+    Tile nextTile;
+
     uint8_t screen[256][240];
-    void scanLine(int line);
+
 public:
-    PPU(Register* ictrl, Register* ioamdma, PPUbus* ibus, bool imirror);
-    void renderFrame();
+    PPU(Register* ictrl, Register* ioamdma, PPUbus* ibus);
+    void draw();
     
 
 };

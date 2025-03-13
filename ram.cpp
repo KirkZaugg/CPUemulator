@@ -3,7 +3,6 @@
 #include"ram.h"
 
 uint8_t RAM::address(uint16_t location, bool write) {
-
     if (mapper == 0) {
         int index;
         if (location < 0x2000) {
@@ -46,6 +45,7 @@ uint8_t RAM::address(uint16_t location, bool write) {
 }
 
 uint8_t RAM::readROM(uint16_t location) {
+    location+=16;
     std::ifstream inputFileStream(file, std::ios::in | std::ios::binary);
     inputFileStream.seekg(location, std::ios::beg);
     char input;
