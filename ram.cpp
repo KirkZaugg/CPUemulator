@@ -20,6 +20,9 @@ uint8_t RAM::address(uint16_t location, bool write) {
                 return 0;
             } else {
                 return (PPUctrl + index)->getValue();
+                if (index == 2) { //Clear Vblank on read
+                    (PPUctrl + 2)->setValue((PPUctrl + 2)->getValue() & ~0x80);
+                }
             }
         } else if (location < 0x4020){
             index = location & 0x1f;

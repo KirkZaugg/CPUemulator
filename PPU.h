@@ -25,7 +25,7 @@ private:
     Register* oamdma;
     void spriteEval();
 
-    int pix;
+    int dot;
     int line;
 
     uint8_t nametableA[0x400];
