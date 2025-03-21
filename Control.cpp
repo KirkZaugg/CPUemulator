@@ -22,8 +22,10 @@ Control::Control(ALU* inALU, Register* ina, Register* inx, Register* iny, RAM* i
 }
 
 uint8_t Control::address(uint8_t mode, int offset) {
+    clock->cycle(offset);
     switch (mode) {
         case AB: {
+            clock->cycle(4);
             pc->inc();
             extra.setValue(ram->getValue(pc->getWholeValue()));
             pc->inc();
@@ -32,26 +34,31 @@ uint8_t Control::address(uint8_t mode, int offset) {
             return (extra.getValue() + (ram->getValue(pc->getWholeValue()) << 8));
         }break;
         case ABX:
+            clock->cycle(4); //+page cross to implement later
             pc->inc();
             extra.setValue(ram->getValue(pc->getWholeValue()));
             pc->inc();
             return (extra.getValue() + (ram->getValue(pc->getWholeValue()) << 8) + x->getValue());
             break;
         case ABY:
+            clock->cycle(4); //+page cross to implement later
             pc->inc();
             extra.setValue(ram->getValue(pc->getWholeValue()));
             pc->inc();
             return (extra.getValue() + (ram->getValue(pc->getWholeValue()) << 8) + y->getValue());
             break;
         case I:
+            clock->cycle(2);
             pc->inc();
             return (ram->getValue(pc->getWholeValue()));
             break;
         case ZP:
+            clock->cycle(3);
             pc->inc();
             return (ram->getValue(ram->getValue(pc->getWholeValue())));
             break;
         case ZPX:
+            clock->cycle(4);
             pc->inc();
             return (ram->getValue(ram->getValue(pc->getWholeValue()) + x->getValue()));
             break;
@@ -61,34 +68,41 @@ uint8_t Control::address(uint8_t mode, int offset) {
 }
 
 void Control::address(uint8_t mode, uint8_t inValue, int offset) {
+    clock->cycle(offset);
     switch (mode) {
-        case AB: 
+        case AB:
+            clock->cycle(4);
             pc->inc();
             extra.setValue(ram->getValue(pc->getWholeValue()));
             pc->inc();
             ram->setValue((ram->getValue(pc->getWholeValue()) << 8) + extra.getValue(), inValue);
             break;
         case ABX:
+            clock->cycle(5);
             pc->inc();
             extra.setValue(ram->getValue(pc->getWholeValue()));
             pc->inc();
             ram->setValue((ram->getValue(pc->getWholeValue()) << 8) + extra.getValue() + x->getValue(), inValue);
             break;
         case ABY:
+            clock->cycle(5);
             pc->inc();
             extra.setValue(ram->getValue(pc->getWholeValue()));
             pc->inc();
             ram->setValue((ram->getValue(pc->getWholeValue()) << 8) + extra.getValue() + y->getValue(), inValue);
             break;
         case I:
+            clock->cycle(2); //this value may be wrong
             pc->inc();
             ram->setValue(pc->getWholeValue(), inValue);
             break;
         case ZP:
+            clock->cycle(2);
             pc->inc();
             ram->setValue(ram->getValue(pc->getWholeValue()), inValue);
             break;
-        case ZPX:
+        case ZPX:  
+            clock->cycle(4);
             pc->inc();
             ram->setValue(ram->getValue(pc->getWholeValue()) + x->getValue(), inValue);
             break;

@@ -9,8 +9,13 @@
 #include"PPUbus.h"
 #include"PPU.h"
 #include"Clock.h"
+#include"Interface.h"
 
-int main() {
+/* for compilation:
+g++ -I src/include -L src/lib -o main.exe *.cpp -lmingw32 -lSDL2main -lSDL2
+*/
+
+int main( int argc, char* argv[] ) {
     Register a;
     Register x;
     Register y;
@@ -33,8 +38,9 @@ int main() {
     RAM ram(filename, PPUctrl, misc);
     PPUbus pbus(filename);
 
+    Interface inter;
 
-    PPU ppu(PPUctrl, &oamdma, &pbus);
+    PPU ppu(PPUctrl, &oamdma, &pbus, &inter);
 
     ProgramCounter p;
     p.setWholeValue(0);
@@ -43,12 +49,16 @@ int main() {
 
     Control control(&alu, &a, &x, &y, &ram, &s, &f, &p, &sp, &clock);
 
+    
+
+
     control.reset();
-    for (int i = 0; i < 20; i++) {
+    for (int i = 0; i < 100; i++) {
         int addr = p.getWholeValue();
         int val = ram.getValue(p.getWholeValue());
         std::cout << "\naddr:" << std::hex << addr << "    val:" << std::hex << val << "    ";
         control.operate();
     }
     std::cout << "\n";
+   return 0;
 }

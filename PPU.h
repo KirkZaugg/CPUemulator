@@ -1,6 +1,7 @@
 #pragma once
 #include"PPUbus.h"
 #include"Register.h"
+#include "Interface.h"
 
 class PPU {
 private:
@@ -48,8 +49,12 @@ private:
 
     uint8_t screen[256][240];
 
+    Interface* out;
+
+    void frameOut();
+
 public:
-    PPU(Register* ictrl, Register* ioamdma, PPUbus* ibus);
+    PPU(Register* ictrl, Register* ioamdma, PPUbus* ibus, Interface* iout);
     void draw();
     
 

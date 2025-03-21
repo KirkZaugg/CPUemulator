@@ -1,7 +1,8 @@
 #include"PPU.h"
 #include"Register.h"
+#include<iostream>
 
-PPU::PPU(Register* ictrl, Register* ioamdma, PPUbus* ibus) {
+PPU::PPU(Register* ictrl, Register* ioamdma, PPUbus* ibus, Interface* iout) {
     ppuctrl = ictrl;
     ppumask = ictrl + 1;
     ppustatus = ictrl + 2;
@@ -17,12 +18,15 @@ PPU::PPU(Register* ictrl, Register* ioamdma, PPUbus* ibus) {
     x = 0;
     line = 0;
     dot = 0;
+
+    out = iout;
 }
 
 
 
 void PPU::draw() {
     bool render = true;
+    std::cout << "d";
     if(render) {
         
         if (line < 240) { //visible
@@ -92,6 +96,9 @@ void PPU::draw() {
             if (line == 241) {
                 if (dot == 1) {ppustatus->setValue(ppustatus->getValue() | 0x80);} //set Vblank flag
                 //set NMI
+
+                frameOut();
+
             }
         } else {
 
@@ -151,6 +158,16 @@ uint8_t PPU::fetchNametable(uint16_t location) {
             return nametableA[location];
         } else {
             return nametableB[location - 0x800];
+        }
+    }
+}
+
+void PPU::frameOut() {
+    uint8_t color;
+    for (int i = 0; i < 256; i++) {
+        for (int j = 0; j < 240; j++) {
+            color = screen[i][j];
+            out->drawPix(i, j, color);
         }
     }
 }
