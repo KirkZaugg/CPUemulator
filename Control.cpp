@@ -62,6 +62,18 @@ uint8_t Control::address(uint8_t mode, int offset) {
             pc->inc();
             return (ram->getValue(ram->getValue(pc->getWholeValue()) + x->getValue()));
             break;
+        case IXIND: {
+            clock->cycle(6); //+page cross to implement later
+            pc->inc();
+            int zpaddr = (ram->getValue(pc->getWholeValue()) + x->getValue());
+            return (ram->getValue(ram->getValue(zpaddr) + (ram->getValue(zpaddr + 1) << 8)));
+        }break;
+        case INDIX: {
+            clock->cycle(5); //+page cross to implement later
+            pc->inc();
+            int zpaddr = ram->getValue(pc->getWholeValue());
+            return (ram->getValue(ram->getValue(zpaddr) + (ram->getValue(zpaddr + 1) << 8))) + y->getValue();
+        }break;
     }
 
     return 0;
@@ -106,6 +118,18 @@ void Control::address(uint8_t mode, uint8_t inValue, int offset) {
             pc->inc();
             ram->setValue(ram->getValue(pc->getWholeValue()) + x->getValue(), inValue);
             break;
+        case IXIND: {
+            clock->cycle(6);
+            pc->inc();
+            int zpaddr = (ram->getValue(pc->getWholeValue()) + x->getValue());
+            ram->setValue(ram->getValue(zpaddr) + (ram->getValue(zpaddr + 1) << 8), inValue);
+        }break;
+        case INDIX: {
+            clock->cycle(6);
+            pc->inc();
+            int zpaddr = ram->getValue(pc->getWholeValue());
+            ram->setValue(ram->getValue(zpaddr) + (ram->getValue(zpaddr + 1) << 8) + y->getValue(), inValue);
+        }break;
     }
 }
 
@@ -181,14 +205,14 @@ void Control::operate() {
         case 0x00: //BRK
             interrupt(0xfe);
             break;
-        case 0x20: {//JSR (abs) 
+        case 0x20: {//JSR (abs)       //fix next time: jumps 1 too far
             pc->inc();
             extra.setValue(ram->getValue(pc->getWholeValue()));
             pc->inc();
             uint16_t target = ((ram->getValue(pc->getWholeValue()) << 8) + (extra.getValue()));
             pushStack(ram->getValue(pc->getWholeValue()) << 8);
             pushStack(extra.getValue());
-            pc->setWholeValue(target);
+            pc->setWholeValue(target - 1);
             clock->cycle(6);
         }break;
         case 0x40: {//RTI
@@ -326,8 +350,8 @@ void Control::operate() {
                 if (branch) {
                     //BRANCH
                     pc->inc();
-                    extra.setValue(ram->getValue(pc->getWholeValue()));
-                    pc->setWholeValue(pc->getWholeValue() + extra.getValue()); //remember to implement page crossing time
+                    uint8_t offset = ram->getValue(pc->getWholeValue());
+                    pc->setWholeValue(pc->getWholeValue() + reinterpret_cast<char&>(offset)); //remember to implement page crossing time
                     clock->cycle(3);
                     int out = pc->getWholeValue();
                 } else {
