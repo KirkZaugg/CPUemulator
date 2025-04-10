@@ -53,7 +53,7 @@ int main( int argc, char* argv[] ) {
 
 
     control.reset();
-    for (int i = 0; i < 4000; i++) {
+    for (int i = 0; i < 15000; i++) {
         int addr = p.getWholeValue();
         int val = ram.getValue(p.getWholeValue());
         std::cout << "\naddr:" << std::hex << addr << "    val:" << std::hex << val << "    ";

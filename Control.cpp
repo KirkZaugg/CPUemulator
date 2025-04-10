@@ -19,6 +19,8 @@ Control::Control(ALU* inALU, Register* ina, Register* inx, Register* iny, RAM* i
     sp = insp;
     clock = iclock;
 
+    sp->setValue(0xff);
+
 }
 
 uint8_t Control::address(uint8_t mode, int offset) {
@@ -164,12 +166,12 @@ void Control::flags(Register* inreg) {
 }
 
 void Control::pushStack(uint8_t value) {
-    ram->setValue(sp->getValue() + 0x0100, value);
+    ram->setValue(sp->getValue() | 0x0100, value);
     sp->setValue(sp->getValue() - 1);
 }
 uint8_t Control::pullStack() {
     sp->setValue(sp->getValue() + 1);
-    return ram->getValue(sp->getValue() + 0x0100);
+    return ram->getValue(sp->getValue() | 0x0100);
 }
 
 void Control::NMI() {
@@ -205,13 +207,13 @@ void Control::operate() {
         case 0x00: //BRK
             interrupt(0xfe);
             break;
-        case 0x20: {//JSR (abs)       //fix next time: jumps 1 too far
+        case 0x20: {//JSR (abs)
+            pushStack(pc->getBigValue());
+            pushStack(pc->getValue() + 2);
             pc->inc();
             extra.setValue(ram->getValue(pc->getWholeValue()));
             pc->inc();
             uint16_t target = ((ram->getValue(pc->getWholeValue()) << 8) + (extra.getValue()));
-            pushStack(ram->getValue(pc->getWholeValue()) << 8);
-            pushStack(extra.getValue());
             pc->setWholeValue(target - 1);
             clock->cycle(6);
         }break;
@@ -499,7 +501,7 @@ void Control::operate() {
                             f->setNegative((mvalue >> 7) & 1);
                             f->setZero((mvalue & a->getValue()) == 0);
                         }break;
-                        case 0b010:  {//JMP (ind)
+                        case 0b011:  {//JMP (ind) 
                             pc->inc();
                             extra.setValue(ram->getValue(pc->getWholeValue()));
                             pc->inc();
@@ -509,15 +511,15 @@ void Control::operate() {
                             extra.setValue(ram->getValue(pc->getWholeValue()));
                             pc->inc();
                             target = ((ram->getValue(pc->getWholeValue()) << 8) + (extra.getValue()));
-                            pc->setWholeValue(target);   //second jump
+                            pc->setWholeValue(target - 1);   //second jump
                             clock->cycle(5);
                         }break;
-                        case 0b011:  {//JMP (abs)
+                        case 0b010:  {//JMP (abs)
                             pc->inc();
                             extra.setValue(ram->getValue(pc->getWholeValue()));
                             pc->inc();
                             uint16_t target = ((ram->getValue(pc->getWholeValue()) << 8) + (extra.getValue()));
-                            pc->setWholeValue(target);
+                            pc->setWholeValue(target - 1);
                             clock->cycle(3);
                         }break;
                         case 0b100:  //STY
