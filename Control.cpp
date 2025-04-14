@@ -31,8 +31,6 @@ uint8_t Control::address(uint8_t mode, int offset) {
             pc->inc();
             extra.setValue(ram->getValue(pc->getWholeValue()));
             pc->inc();
-            int outtest = (extra.getValue() + (ram->getValue(pc->getWholeValue()) << 8));
-            std::cout << " " << outtest << " ";
             return (extra.getValue() + (ram->getValue(pc->getWholeValue()) << 8));
         }break;
         case ABX:
@@ -176,10 +174,13 @@ uint8_t Control::pullStack() {
 
 void Control::NMI() {
     interrupt(0xfa);
+    std::cout << " NMI ";
 }
 
 void Control::IRQ() {
-    interrupt(0xfe);
+    if (!f->getID()) {
+        interrupt(0xfe);
+    }
 }
 
 void Control::reset() {
@@ -194,14 +195,19 @@ void Control::interrupt(uint8_t vector) {
     pushStack(pc->getValue());
     pushStack(f->getValue());
     f->setID(1);
-    pc->setWholeValue(0xff00 | vector);
+    uint16_t bigvec = vector | 0xff00;
+    uint16_t target = ram->getValue(bigvec) | (ram->getValue(bigvec + 1) << 8);
+    int outtarget = target;
+    int outvec = bigvec;
+    std::cout << "int: " << outvec << " " << outtarget;
+    pc->setWholeValue(target);
 }
 
 void Control::operate() {
 
+    if(pc->getWholeValue() < 0x2000) {std::cout << " err: Ram Reading ";}
+
     uint8_t opcode = ram->getValue(pc->getWholeValue());
-    int op = opcode;
-    std::cout << "op:" << std::hex << op << "   ";
 
     switch (opcode) {
         case 0x00: //BRK

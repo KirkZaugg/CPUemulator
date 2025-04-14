@@ -51,10 +51,12 @@ private:
 
     Interface* out;
 
+    bool* nmi;
+
     void frameOut();
 
 public:
-    PPU(Register* ictrl, Register* ioamdma, PPUbus* ibus, Interface* iout);
+    PPU(Register* ictrl, Register* ioamdma, PPUbus* ibus, Interface* iout, bool* inmi);
     void draw();
     
 

@@ -69,12 +69,11 @@ void RAM::setValue(uint16_t location, uint8_t value) {
 
     writeValue = value;
     address(location, 1);
-
-    std::ofstream outputFileStream(file, std::ios::in | std::ios::out | std::ios::binary);
+    /*std::ofstream outputFileStream(file, std::ios::in | std::ios::out | std::ios::binary);
     outputFileStream.seekp(location, std::ios::beg);
     char writeval = value;
     outputFileStream.write(&writeval, 1);
-    outputFileStream.close();
+    outputFileStream.close();*/
 }
 
 void RAM::setMapper(int imapper) {

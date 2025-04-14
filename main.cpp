@@ -40,7 +40,9 @@ int main( int argc, char* argv[] ) {
 
     Interface inter;
 
-    PPU ppu(PPUctrl, &oamdma, &pbus, &inter);
+    bool nmi = false;
+
+    PPU ppu(PPUctrl, &oamdma, &pbus, &inter, &nmi);
 
     ProgramCounter p;
     p.setWholeValue(0);
@@ -53,10 +55,23 @@ int main( int argc, char* argv[] ) {
 
 
     control.reset();
-    for (int i = 0; i < 15000; i++) {
-        int addr = p.getWholeValue();
+    while(!nmi) {
+        control.operate();
+    }control.NMI(); nmi = false;
+    while(!nmi) {
+        control.operate();
+    }control.NMI(); nmi = false;
+    while(!nmi) {
+        control.operate();
+    }control.NMI(); nmi = false;
+    while(!nmi) {
+        control.operate();
+    }control.NMI(); nmi = false;
+    for (int i = 0; i < 10000; i++) {
+        if (nmi) { control.NMI(); nmi = false; }
+        /*int addr = p.getWholeValue();
         int val = ram.getValue(p.getWholeValue());
-        std::cout << "\naddr:" << std::hex << addr << "    val:" << std::hex << val << "    ";
+        std::cout << "\naddr:" << std::hex << addr << "    val:" << std::hex << val << "    ";*/
         control.operate();
     }
     std::cout << "\n";

@@ -2,7 +2,7 @@
 #include"Register.h"
 #include<iostream>
 
-PPU::PPU(Register* ictrl, Register* ioamdma, PPUbus* ibus, Interface* iout) {
+PPU::PPU(Register* ictrl, Register* ioamdma, PPUbus* ibus, Interface* iout, bool* inmi) {
     ppuctrl = ictrl;
     ppumask = ictrl + 1;
     ppustatus = ictrl + 2;
@@ -20,13 +20,14 @@ PPU::PPU(Register* ictrl, Register* ioamdma, PPUbus* ibus, Interface* iout) {
     dot = 0;
 
     out = iout;
+
+    nmi = inmi;
 }
 
 
 
 void PPU::draw() {
     bool render = true;
-    std::cout << "d";
     if(render) {
         
         if (line < 240) { //visible
@@ -94,8 +95,8 @@ void PPU::draw() {
             
         } else if (line < 261) { //vblank
             if (line == 241) {
-                if (dot == 1) {ppustatus->setValue(ppustatus->getValue() | 0x80);} //set Vblank flag
-                //set NMI
+                if (dot == 1) {ppustatus->setValue(ppustatus->getValue() | 0x80); *nmi = true; } //set Vblank and NMI
+                
 
                 frameOut();
 
