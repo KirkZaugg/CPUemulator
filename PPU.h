@@ -12,6 +12,16 @@ private:
     uint8_t x;
     bool w;
 
+    bool incctrl;
+    bool nmienable;
+    bool masterSlave;
+    bool spriteSize;
+    bool backgroundSelect;
+    bool spriteSelect;
+
+    bool renderBackground;
+    bool renderSprites;
+
     Register* ppuctrl;
     Register* ppumask;
     Register* ppustatus;
@@ -54,6 +64,9 @@ private:
     bool* nmi;
 
     void frameOut();
+
+    
+    void checkRegisters();
 
 public:
     PPU(Register* ictrl, Register* ioamdma, PPUbus* ibus, Interface* iout, bool* inmi);

@@ -56,6 +56,9 @@ int main( int argc, char* argv[] ) {
 
     control.reset();
     while(!nmi) {
+        int addr = p.getWholeValue();
+        int val = ram.getValue(p.getWholeValue());
+        std::cout << "\naddr:" << std::hex << addr << "    val:" << std::hex << val << "    ";
         control.operate();
     }control.NMI(); nmi = false;
     while(!nmi) {

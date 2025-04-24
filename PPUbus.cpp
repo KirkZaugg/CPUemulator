@@ -11,7 +11,8 @@ uint8_t* PPUbus::addr(uint16_t location) {
     } else if (location < 0x4000) {
         target = &palette[(location & 0xff) % 0x20];
     } else {
-        std::cout << "PPU error: invalid address\n";
+        std::cout << "PPU error: invalid address: " << location << "\n";
+        std::cin >> location;
     }
     return target;
 }
@@ -22,6 +23,9 @@ uint8_t PPUbus::read(uint16_t location) {
 }
 
 void PPUbus::write(uint16_t location, uint8_t value) {
+    int lc = location;
+    int vl = value;
+    std::cout << location << " " << vl << " ";
     uint8_t* target = addr(location);
     *target = value;
     return;
